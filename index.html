@@ -1,19 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="evenn">
 <head>
   <title>Evenn</title>
-  <style type="text/css">
-  body {
-    font-family: Arial;
-    text-align: center;
-  }
-  </style>
+  <link rel="stylesheet" type="text/css" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="/bower_components/fontawesome/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="/public/comp.css">
+
+  <script src="/bower_components/lodash/dist/lodash.min.js"></script>
+  <script src="/bower_components/async/dist/async.min.js"></script>
+  <script src="/bower_components/angular/angular.js"></script>
+  <script src="/bower_components/angular-route/angular-route.js"></script>
+  <script src="/bower_components/angular-animate/angular-animate.js"></script>
+  <script src="/bower_components/angular-strap/dist/angular-strap.js"></script>
+  <script src="/bower_components/angular-strap/dist/angular-strap.tpl.js"></script>
+  <script src="/bower_components/angular-facebook/lib/angular-facebook.js"></script>
+  <script src="/public/comp.js"></script>
 </head>
-<body>
-  <p>
-    Evenn allows you to see data about and connections between facebook events.
-    <br>
-    Coming soon...
-  </p>
+<body ng-controller="MainCtrl">
+  <div class="container">
+    <div class="page-header">
+      <h1>Evenn <small>See connections between Facebook events</small></h1>
+    </div>
+    <ul class="nav nav-tabs" ng-show="user.eventsReady" bs-navbar>
+      <li data-match-route="/$">
+        <a href="#/"><i class="fa fa-calendar"></i> Events</a>
+      </li>
+      <li data-match-route="/table$">
+        <a href="#/table"><i class="fa fa-list"></i> Big List</a>
+      </li>
+      <li data-match-route="/venn$">
+        <a href="#/venn"><i class="fa fa-dot-circle-o"></i> Venn Diagram</a>
+      </li>
+      <li data-match-route="/genders$">
+        <a href="#/genders"><i class="fa fa-users"></i> Gender Ratios</a>
+      </li>
+    </ul>
+    <ng-view></ng-view>
+    <div class="well well-sm text-muted">
+      Made by <a href="http://rory.ie/me">Rory Hughes</a>
+      <a href="/" class="btn btn-default btn-xs pull-right">Select different events</a>
+    </div>
+  </div>
+
+
+<script type="text/ng-template" id="loading.html">
+  <h3>Loading Facebook...</h3>
+</script>
+
+<script type="text/ng-template" id="login.html">
+  <div class="text-center">
+    <button type="button" class="btn btn-primary btn-lg" ng-click="login()">
+      <i class="fa fa-facebook-square"></i> Login with Facebook
+    </button>
+  </div>
+</script>
+
+<script type="text/ng-template" id="select.html">
+  <h3 class="text-muted" ng-hide="availableEvents">Loading events</h3>
+  <div ng-if="availableEvents" class="panel panel-default select-events-panel">
+    <div ng-show="loadingMessage" class="panel-body">
+      <strong ng-bind="loadingMessage"></strong>
+    </div>
+    <div ng-hide="loadingMessage" class="panel-heading">
+      <strong class="pull-left" ng-class="{'text-danger': selectedEventCount > 5}">
+        Select up to five events
+      </strong>
+      <button class="btn btn-success pull-right" ng-click="analyseEvents()" ng-disabled="selectedEventCount < 1 || selectedEventCount > 5">
+        Analyse <i class="fa fa-caret-right"></i>
+      </button>
+      <div class="clearfix"></div>
+    </div>
+    <div ng-hide="loadingMessage" class="panel-body">
+      <div class="list-group">
+        <a ng-repeat="event in availableEvents"
+           ng-click="event.selected = !event.selected; updateSelectedEventCount()"
+           ng-class="{'active': event.selected}"
+           class="list-group-item">
+          <h4 class="list-group-item-heading">
+            <i class="fa" ng-class="{'fa-square-o': !event.selected, 'fa-check-square-o': event.selected}"></i>
+            <span ng-bind="event.name"></span>
+          </h4>
+          <p class="list-group-item-text">
+            Location: <strong ng-bind="event.location"></strong>
+            Time: <strong ng-bind="event.start_time"></strong>
+          </p>
+        </a>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="events_home.html">
+  <h4>Selected Events:</h4>
+  <div class="row">
+    <div class="col-sm-6 col-md-4" ng-repeat="(id, event) in user.events">
+      <div class="thumbnail">
+        <img ng-src="{{event.cover.source}}" ng-if="event.cover">
+        <div class="well well-lg" ng-hide="event.cover">No cover photo :(</div>
+        <div class="caption">
+          <h3 ng-bind="event.name"></h3>
+          <dl>
+            <dt>Created by</dt>
+            <dd ng-bind="event.owner.name"></dd>
+            <dt>Location</dt>
+            <dd ng-bind="event.location"></dd>
+            <dt>Time</dt>
+            <dd ng-bind="event.start_time | date : 'yyyy-MM-dd HH:mm:ss'"></dd>
+            <dt>Description</dt>
+            <dd>
+              <span ng-hide="event._showDescription"><span ng-bind="event.description | limitTo : 100"></span>...</span>
+              <span class="preformatted" ng-if="event._showDescription" ng-bind="event.description"></span>
+              <a ng-if="event.description.length > 100" ng-click="event._showDescription = !event._showDescription" ng-bind="event._showDescription ? 'Show Less' : 'Show More'"></a>
+            </dd>
+          </dl>
+          <p>
+            <a class="btn btn-default btn-sm" ng-href="#/table?highlight={{id}}">Show in big list</a>
+            <a class="btn btn-default btn-sm">Gender Ratio</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="table.html">
+  <div class="row big-list-header">
+    <h3 class="col-sm-5">Big List</h3>
+    <div class="input-group col-sm-7">
+      <span class="input-group-addon"><i class="fa fa-search"></i></span>
+      <input type="text" class="form-control" placeholder="Search..." ng-model="searchList.name" ng-model-options="{ debounce: 400 }">
+    </div>
+  </div>
+  <table class="table table-hover table-condensed">
+    <thead>
+      <tr>
+        <th>Person</th>
+        <th ng-repeat="id in user.eventIds" ng-bind="user.events[id].name" ng-class="{'highlightedColumn': id == highlightId}"></th>
+      </tr>
+    </thead>
+    <tr ng-repeat="person in attendees | filter : searchList | orderBy : getScore : true">
+      <td>
+        <a ng-href="{{person.link}}" target="_blank">
+          <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
+          <span ng-bind="person.name"></span>
+        </a>
+      </td>
+      <td ng-repeat="id in user.eventIds" ng-class="rsvpMeta.colors[person.events[id]]" ng-bind="rsvpMeta.words[person.events[id]]"></td>
+    </tr>
+  </table>
+</script>
+
+<script type="text/ng-template" id="genders.html">
+  <h4>Gender Ratios</h4>
+  Coming soon...
+</script>
+
+<script type="text/ng-template" id="venn.html">
+  <h4>Venn Diagram</h4>
+</script>
+
 </body>
 </html>
