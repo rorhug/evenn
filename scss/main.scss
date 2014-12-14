@@ -28,8 +28,13 @@ input[type=search] {
   }
 }
 
+tbody {
+  height: 600px;
+  overflow-y: auto;
+}
+
 .table-condensed>tbody>tr>td {
-  padding: 0;
+  padding: 0 5px;
 }
 
 .preformatted {

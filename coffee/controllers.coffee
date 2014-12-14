@@ -96,10 +96,10 @@ ev.controller('TableCtrl', [
   'UserStore'
   ($scope, $routeParams, UserStore) ->
     rsvpStatuses =
-      attending: 700
-      unsure: 600
-      not_replied: 500
-      declined: 400
+      attending: 7
+      unsure: 6
+      not_replied: 5
+      declined: 4
     $scope.rsvpMeta =
       colors:
         attending: 'success'
@@ -119,12 +119,11 @@ ev.controller('TableCtrl', [
       _.reduce($scope.user.eventIds, (result, eventId, index) ->
         rsvpScore = rsvpStatuses[attendee.events[eventId]]
         if rsvpScore
-          result + rsvpScore + (index + 1)
+          # result + (rsvpScore * 100) + ((index + 1)*rsvpScore)
+          result + rsvpScore + ( (index+1) * 100 )
         else
           result
       , 0)
-
-      
 ])
 
 ev.controller('VennCtrl', [
