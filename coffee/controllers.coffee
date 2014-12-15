@@ -96,10 +96,10 @@ ev.controller('TableCtrl', [
   'UserStore'
   ($scope, $routeParams, UserStore) ->
     rsvpStatuses =
-      attending: 700
-      unsure: 600
-      not_replied: 500
-      declined: 400
+      attending: 16
+      unsure: 15
+      declined: 14
+      not_replied: 9
     $scope.rsvpMeta =
       colors:
         attending: 'success'
@@ -108,23 +108,22 @@ ev.controller('TableCtrl', [
         not_replied: 'active'
       words:
         attending: 'Going'
-        declined: 'Not going'
+        declined: 'Declined'
         unsure: 'Maybe'
         not_replied: 'Invited'
     $scope.highlightId = $routeParams.highlight
+    $scope.innerHeight = window.innerHeight
 
     $scope.attendees = _.values(UserStore.users)
-    $scope.attendees
     $scope.getScore = (attendee) ->
       _.reduce($scope.user.eventIds, (result, eventId, index) ->
         rsvpScore = rsvpStatuses[attendee.events[eventId]]
         if rsvpScore
-          result + rsvpScore + (index + 1)
+          i = Math.pow((index+2), 2)
+          result + 10000 + (i*100) + (rsvpScore*i)
         else
           result
       , 0)
-
-      
 ])
 
 ev.controller('VennCtrl', [

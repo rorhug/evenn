@@ -81,8 +81,7 @@
             <span ng-bind="event.name"></span>
           </h4>
           <p class="list-group-item-text">
-            Location: <strong ng-bind="event.location"></strong>
-            Time: <strong ng-bind="event.start_time"></strong>
+            <strong ng-bind="event.location"></strong>, <strong ng-bind="event.start_time| date : 'yyyy-MM-dd HH:mm'"></strong>
           </p>
         </a>
       </div>
@@ -105,7 +104,7 @@
             <dt>Location</dt>
             <dd ng-bind="event.location"></dd>
             <dt>Time</dt>
-            <dd ng-bind="event.start_time | date : 'yyyy-MM-dd HH:mm:ss'"></dd>
+            <dd ng-bind="event.start_time | date : 'yyyy-MM-dd HH:mm'"></dd>
             <dt>Description</dt>
             <dd>
               <span ng-hide="event._showDescription"><span ng-bind="event.description | limitTo : 100"></span>...</span>
@@ -128,25 +127,28 @@
     <h3 class="col-sm-5">Big List</h3>
     <div class="input-group col-sm-7">
       <span class="input-group-addon"><i class="fa fa-search"></i></span>
-      <input type="text" class="form-control" placeholder="Search..." ng-model="searchList.name" ng-model-options="{ debounce: 400 }">
+      <input type="text" class="form-control" placeholder="Search..." ng-model="searchList.name" ng-model-options="{ debounce: 300 }">
     </div>
   </div>
+
   <table class="table table-hover table-condensed">
     <thead>
       <tr>
         <th>Person</th>
-        <th ng-repeat="id in user.eventIds" ng-bind="user.events[id].name" ng-class="{'highlightedColumn': id == highlightId}"></th>
+        <th ng-repeat="id in user.eventIds" ng-bind="user.events[id].name" ng-class="{'highlighted-column': id == highlightId}"></th>
       </tr>
     </thead>
-    <tr ng-repeat="person in attendees | filter : searchList | orderBy : getScore : true">
-      <td>
-        <a ng-href="{{person.link}}" target="_blank">
-          <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
-          <span ng-bind="person.name"></span>
-        </a>
-      </td>
-      <td ng-repeat="id in user.eventIds" ng-class="rsvpMeta.colors[person.events[id]]" ng-bind="rsvpMeta.words[person.events[id]]"></td>
-    </tr>
+    <tbody ng-style="{height: '' + (innerHeight - 150) + 'px'}">
+      <tr ng-repeat="person in attendees | filter : searchList | orderBy : getScore : true">
+        <td>
+          <a ng-href="{{person.link}}" target="_blank">
+            <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
+            <span ng-bind="person.name"></span>
+          </a>
+        </td>
+        <td ng-repeat="id in user.eventIds" ng-class="rsvpMeta.colors[person.events[id]]" ng-bind="rsvpMeta.words[person.events[id]]"></td>
+      </tr>
+    </tbody>
   </table>
 </script>
 
