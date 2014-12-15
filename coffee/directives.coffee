@@ -13,4 +13,3 @@ ev.directive("loader", [->
     </div>
   """
 ])
-

@@ -127,22 +127,24 @@
     <h3 class="col-sm-5">Big List</h3>
     <div class="input-group col-sm-7">
       <span class="input-group-addon"><i class="fa fa-search"></i></span>
-      <input type="text" class="form-control" placeholder="Search..." ng-model="searchList.name" ng-model-options="{ debounce: 400 }">
+      <input type="text" class="form-control" placeholder="Search..." ng-model="searchList.name" ng-model-options="{ debounce: 300 }">
     </div>
   </div>
+
   <table class="table table-hover table-condensed">
     <thead>
       <tr>
         <th>Person</th>
-        <th ng-repeat="id in user.eventIds" ng-bind="user.events[id].name" ng-class="{'highlightedColumn': id == highlightId}"></th>
+        <th ng-repeat="id in user.eventIds" ng-bind="user.events[id].name" ng-class="{'highlighted-column': id == highlightId}"></th>
       </tr>
     </thead>
-    <tbody ng-style="{height: '' + (window.innerHeight - 150) + 'px'}">
+    <tbody ng-style="{height: '' + (innerHeight - 150) + 'px'}">
       <tr ng-repeat="person in attendees | filter : searchList | orderBy : getScore : true">
         <td>
           <a ng-href="{{person.link}}" target="_blank">
             <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
             <span ng-bind="person.name"></span>
+            <span ng-bind="getScore(person)"></span>
           </a>
         </td>
         <td ng-repeat="id in user.eventIds" ng-class="rsvpMeta.colors[person.events[id]]" ng-bind="rsvpMeta.words[person.events[id]]"></td>
