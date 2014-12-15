@@ -99,10 +99,10 @@ ev.controller('TableCtrl', [
   '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
     var rsvpStatuses;
     rsvpStatuses = {
-      attending: 700,
-      unsure: 600,
-      not_replied: 500,
-      declined: 400
+      attending: 16,
+      unsure: 15,
+      declined: 14,
+      not_replied: 9
     };
     $scope.rsvpMeta = {
       colors: {
@@ -113,20 +113,21 @@ ev.controller('TableCtrl', [
       },
       words: {
         attending: 'Going',
-        declined: 'Not going',
+        declined: 'Declined',
         unsure: 'Maybe',
         not_replied: 'Invited'
       }
     };
     $scope.highlightId = $routeParams.highlight;
+    $scope.innerHeight = window.innerHeight;
     $scope.attendees = _.values(UserStore.users);
-    $scope.attendees;
     return $scope.getScore = function(attendee) {
       return _.reduce($scope.user.eventIds, function(result, eventId, index) {
-        var rsvpScore;
+        var i, rsvpScore;
         rsvpScore = rsvpStatuses[attendee.events[eventId]];
         if (rsvpScore) {
-          return result + rsvpScore + (index + 1);
+          i = Math.pow(index + 2, 2);
+          return result + 10000 + (i * 100) + (rsvpScore * i);
         } else {
           return result;
         }

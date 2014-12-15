@@ -17,8 +17,12 @@ input[type=search] {
 .thumbnail h3 {
   margin-top: 0; }
 
+tbody {
+  height: 600px;
+  overflow-y: auto; }
+
 .table-condensed > tbody > tr > td {
-  padding: 0; }
+  padding: 0 5px; }
 
 .preformatted {
   white-space: pre-line; }
@@ -28,6 +32,6 @@ input[type=search] {
   .big-list-header h3 {
     margin-top: 0; }
 
-.highlightedColumn {
+.highlighted-column {
   background-color: #383838;
   color: #FFFFFF; }
