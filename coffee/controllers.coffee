@@ -115,7 +115,6 @@ ev.controller('TableCtrl', [
     $scope.innerHeight = window.innerHeight
 
     $scope.attendees = _.values(UserStore.users)
-    $scope.attendees
     $scope.getScore = (attendee) ->
       _.reduce($scope.user.eventIds, (result, eventId, index) ->
         rsvpScore = rsvpStatuses[attendee.events[eventId]]

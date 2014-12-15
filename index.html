@@ -144,7 +144,6 @@
           <a ng-href="{{person.link}}" target="_blank">
             <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
             <span ng-bind="person.name"></span>
-            <span ng-bind="getScore(person)"></span>
           </a>
         </td>
         <td ng-repeat="id in user.eventIds" ng-class="rsvpMeta.colors[person.events[id]]" ng-bind="rsvpMeta.words[person.events[id]]"></td>
