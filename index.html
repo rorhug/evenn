@@ -56,7 +56,7 @@
 
 
 <script type="text/ng-template" id="loading.html">
-  <h3>Loading Facebook...</h3>
+  <h3 class="text-muted">Loading Facebook...</h3>
 </script>
 
 <script type="text/ng-template" id="login.html">
@@ -68,7 +68,7 @@
 </script>
 
 <script type="text/ng-template" id="select.html">
-  <h3 class="text-muted" ng-hide="availableEvents">Loading events</h3>
+  <h3 class="text-muted" ng-hide="availableEvents">Loading events...</h3>
   <div ng-if="availableEvents" class="panel panel-default select-events-panel">
     <div ng-show="loadingMessage" class="panel-body">
       <strong ng-bind="loadingMessage"></strong>
@@ -138,31 +138,7 @@
   <div class="row big-list-header">
     <h3 class="col-sm-5">Big List</h3>
   </div>
-
-  <table st-table="attendees" class="table table-hover table-condensed" ng-style="{height: tableHeight}">
-    <thead>
-      <tr>
-        <th st-ratio="100">
-          <input st-search="'name'" placeholder="Search..." class="input-sm form-control" type="search"/>
-        </th>
-      </tr>
-      <tr>
-        <th st-ratio="20">Name</th>
-        <th st-ratio="{{columnWidth}}" ng-repeat="id in user.eventIds" ng-bind="user.events[id].name" ng-class="{'highlighted-column': id == highlightId}"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="person in attendees | orderBy : getScore : true">
-        <td st-ratio="20">
-          <a ng-href="{{person.link}}" target="_blank">
-            <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
-            <span ng-bind="person.name"></span>
-          </a>
-        </td>
-        <td st-ratio="{{columnWidth}}" ng-repeat="id in user.eventIds" ng-class="rsvpMeta.colors[person.events[id]]" ng-bind="rsvpMeta.words[person.events[id]]"></td>
-      </tr>
-    </tbody>
-  </table>
+  <attendee-table attendees="attendees" events="user.events" highlight-id="highlightId"></attendee-table>
 </script>
 
 <script type="text/ng-template" id="genders.html">
@@ -173,6 +149,33 @@
 <script type="text/ng-template" id="venn.html">
   <h4>Venn Diagram</h4>
   Coming soon...
+</script>
+
+<script type="text/ng-template" id="attendee-table.html">
+  <table st-table="attendees" class="table table-hover table-condensed" ng-style="{height: tableHeight}">
+    <thead>
+      <tr>
+        <th st-ratio="100">
+          <input st-search="'name'" placeholder="Search..." class="input-sm form-control" type="search"/>
+        </th>
+      </tr>
+      <tr>
+        <th st-ratio="20">Name</th>
+        <th st-ratio="{{columnWidth}}" ng-repeat="id in eventIds" ng-bind="events[id].name" ng-class="{'highlighted-column': id == highlightId}"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="person in attendees | orderBy : getScore : true">
+        <td st-ratio="20">
+          <a ng-href="{{person.link}}" target="_blank">
+            <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
+            <span ng-bind="person.name"></span>
+          </a>
+        </td>
+        <td st-ratio="{{columnWidth}}" ng-repeat="id in eventIds" ng-class="rsvpMeta.colors[person.events[id]]" ng-bind="rsvpMeta.words[person.events[id]]"></td>
+      </tr>
+    </tbody>
+  </table>
 </script>
 
 </body>

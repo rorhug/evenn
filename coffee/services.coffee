@@ -1,7 +1,12 @@
 ev = angular.module('evenn')
 
-ev.service('UserStore', [ ->
+ev.service('genderize', [
+  '$http'
+  ($http) ->
+    $http
+])
 
+ev.service('UserStore', [ ->
   class User
     constructor: (fbObj) ->
       @id = fbObj.id
@@ -14,8 +19,11 @@ ev.service('UserStore', [ ->
     addRsvp: (id, rsvp) ->
       @events[id] = rsvp
 
+
   store =
     users: {}
+    getAllGenders: (cb) ->
+
     addUserObjByEvent: (eventId, userObj) ->
       userInstance = @users[userObj.id]
       unless userInstance

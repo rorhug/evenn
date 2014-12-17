@@ -68,7 +68,6 @@ ev.controller('SelectEventsCtrl', [
         label: "#{events.length}"
       )
     )
-
     
     selectedEvents = -> _.filter($scope.availableEvents, 'selected')
     $scope.updateSelectedEventCount = ->
@@ -86,13 +85,11 @@ ev.controller('SelectEventsCtrl', [
           cb(null, memo)
         )
       , (err, events) ->
-        console.log events
         $scope.user.events = events
         $scope.user.eventIds = Object.keys(events)
         $scope.loadingMessage = "Event download complete. Please wait..."
         $timeout( ->
           label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
-          console.log(label)
           $analytics.eventTrack('analyse',
             category: 'interesting'
             label: label
@@ -113,36 +110,8 @@ ev.controller('TableCtrl', [
   '$routeParams'
   'UserStore'
   ($scope, $routeParams, UserStore) ->
-    rsvpStatuses =
-      attending: 16
-      unsure: 15
-      declined: 14
-      not_replied: 9
-    $scope.rsvpMeta =
-      colors:
-        attending: 'success'
-        declined: 'danger'
-        unsure: 'warning'
-        not_replied: 'active'
-      words:
-        attending: 'Going'
-        declined: 'Declined'
-        unsure: 'Maybe'
-        not_replied: 'Invited'
     $scope.highlightId = $routeParams.highlight
-    $scope.innerHeight = if window.innerHeight then "#{window.innerHeight - 150}px" else 500
-    $scope.columnWidth = (80 / $scope.user.eventIds.length) - 0.1
-
     $scope.attendees = _.values(UserStore.users)
-    $scope.getScore = (attendee) ->
-      _.reduce($scope.user.eventIds, (result, eventId, index) ->
-        rsvpScore = rsvpStatuses[attendee.events[eventId]]
-        if rsvpScore
-          i = Math.pow((index+2), 2)
-          result + 10000 + (i*100) + (rsvpScore*i)
-        else
-          result
-      , 0)
 ])
 
 ev.controller('VennCtrl', [

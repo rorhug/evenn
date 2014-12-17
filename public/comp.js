@@ -89,14 +89,12 @@ ev.controller('SelectEventsCtrl', [
           return cb(null, memo);
         });
       }, function(err, events) {
-        console.log(events);
         $scope.user.events = events;
         $scope.user.eventIds = Object.keys(events);
         $scope.loadingMessage = "Event download complete. Please wait...";
         return $timeout(function() {
           var label;
           label = "" + $scope.user.eventIds.length + "e" + (_.size(UserStore.users)) + "u";
-          console.log(label);
           $analytics.eventTrack('analyse', {
             category: 'interesting',
             label: label
@@ -113,14 +111,43 @@ ev.controller('EventsHomeCtrl', ['$scope', function($scope) {}]);
 
 ev.controller('TableCtrl', [
   '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
-    var rsvpStatuses;
-    rsvpStatuses = {
-      attending: 16,
-      unsure: 15,
-      declined: 14,
-      not_replied: 9
+    $scope.highlightId = $routeParams.highlight;
+    return $scope.attendees = _.values(UserStore.users);
+  }
+]);
+
+ev.controller('VennCtrl', ['$scope', function($scope) {}]);
+
+ev.controller('GenderRatiosCtrl', ['$scope', function($scope) {}]);
+
+var ev;
+
+ev = angular.module('evenn');
+
+ev.directive('loader', [
+  function() {
+    return {
+      restrict: 'AE',
+      replace: true,
+      template: "<div class=\"spinner\">\n  <div class=\"rect1\"></div>\n  <div class=\"rect2\"></div>\n  <div class=\"rect3\"></div>\n  <div class=\"rect4\"></div>\n  <div class=\"rect5\"></div>\n</div>"
     };
-    $scope.rsvpMeta = {
+  }
+]);
+
+ev.directive('stRatio', function() {
+  return {
+    link: function(scope, element, attr) {
+      var ratio;
+      ratio = +attr.stRatio;
+      return element.css('width', ratio + '%');
+    }
+  };
+});
+
+ev.directive('attendeeTable', [
+  function() {
+    var rsvpMeta, rsvpStatuses;
+    rsvpMeta = {
       colors: {
         attending: 'success',
         declined: 'danger',
@@ -134,52 +161,43 @@ ev.controller('TableCtrl', [
         not_replied: 'Invited'
       }
     };
-    $scope.highlightId = $routeParams.highlight;
-    $scope.innerHeight = window.innerHeight ? "" + (window.innerHeight - 150) + "px" : 500;
-    $scope.columnWidth = (80 / $scope.user.eventIds.length) - 0.1;
-    $scope.attendees = _.values(UserStore.users);
-    return $scope.getScore = function(attendee) {
-      return _.reduce($scope.user.eventIds, function(result, eventId, index) {
-        var i, rsvpScore;
-        rsvpScore = rsvpStatuses[attendee.events[eventId]];
-        if (rsvpScore) {
-          i = Math.pow(index + 2, 2);
-          return result + 10000 + (i * 100) + (rsvpScore * i);
-        } else {
-          return result;
-        }
-      }, 0);
+    rsvpStatuses = {
+      attending: 16,
+      unsure: 15,
+      declined: 14,
+      not_replied: 9
     };
-  }
-]);
-
-ev.controller('VennCtrl', ['$scope', function($scope) {}]);
-
-ev.controller('GenderRatiosCtrl', ['$scope', function($scope) {}]);
-
-var ev;
-
-ev = angular.module('evenn');
-
-ev.directive("loader", [
-  function() {
     return {
-      restrict: "AE",
-      replace: true,
-      template: "<div class=\"spinner\">\n  <div class=\"rect1\"></div>\n  <div class=\"rect2\"></div>\n  <div class=\"rect3\"></div>\n  <div class=\"rect4\"></div>\n  <div class=\"rect5\"></div>\n</div>"
+      scope: {
+        attendees: '=',
+        highlightId: '=',
+        events: '='
+      },
+      templateUrl: 'attendee-table.html',
+      link: function(scope, element, attr) {
+        scope.eventIds = Object.keys(scope.events);
+        scope.tableHeight = window.innerHeight ? "" + (window.innerHeight - 150) + "px" : '500px';
+        scope.columnWidth = (80 / scope.eventIds.length) - 0.1;
+        scope.rsvpMeta = rsvpMeta;
+        return scope.getScore = function(attendee) {
+          if (attendee.score) {
+            return attendee.score;
+          }
+          return attendee.score = _.reduce(scope.eventIds, function(result, eventId, index) {
+            var i, rsvpScore;
+            rsvpScore = rsvpStatuses[attendee.events[eventId]];
+            if (rsvpScore) {
+              i = Math.pow(index + 2, 2);
+              return result + 10000 + (i * 100) + (rsvpScore * i);
+            } else {
+              return result;
+            }
+          }, 0);
+        };
+      }
     };
   }
 ]);
-
-ev.directive("stRatio", function() {
-  return {
-    link: function(scope, element, attr) {
-      var ratio;
-      ratio = +attr.stRatio;
-      return element.css("width", ratio + "%");
-    }
-  };
-});
 
 var ev;
 
@@ -250,6 +268,12 @@ var ev;
 
 ev = angular.module('evenn');
 
+ev.service('genderize', [
+  '$http', function($http) {
+    return $http;
+  }
+]);
+
 ev.service('UserStore', [
   function() {
     var User, store;
@@ -272,6 +296,7 @@ ev.service('UserStore', [
     })();
     return store = {
       users: {},
+      getAllGenders: function(cb) {},
       addUserObjByEvent: function(eventId, userObj) {
         var userInstance;
         userInstance = this.users[userObj.id];
