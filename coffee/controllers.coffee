@@ -69,7 +69,6 @@ ev.controller('SelectEventsCtrl', [
   'FbEvent'
   'UserStore'
   ($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) ->
-
     async.reduce(['attending', 'not_replied', 'maybe', 'declined'], [], (memo, status, cb) ->
       Facebook.api("/me/events/#{status}",
         limit: 50
@@ -85,12 +84,15 @@ ev.controller('SelectEventsCtrl', [
       )
     )
     
+    $scope.maxSelection = 5
     selectedEvents = -> _.filter($scope.availableEvents, 'selected')
+    $scope.selectedEventCount = 0
     $scope.updateSelectedEventCount = ->
       $scope.selectedEventCount = selectedEvents().length
 
     $scope.analyseEvents = ->
-      selectedEvents = selectedEvents()
+      selectedEvents = selectedEvents().slice(0, $scope.maxSelection)
+      return unless selectedEvents.length
       $scope.loadingMessage = "Loading #{selectedEvents.length} events..."
       loadedCount = 0
 

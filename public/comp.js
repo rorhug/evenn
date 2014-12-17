@@ -85,15 +85,21 @@ ev.controller('SelectEventsCtrl', [
         label: "" + events.length
       });
     });
+    $scope.maxSelection = 3;
     selectedEvents = function() {
       return _.filter($scope.availableEvents, 'selected');
     };
+    $scope.selectedEventCount = 0;
     $scope.updateSelectedEventCount = function() {
-      return $scope.selectedEventCount = selectedEvents().length;
+      $scope.selectedEventCount = selectedEvents().length;
+      return console.log($scope.selectedEventCount);
     };
     return $scope.analyseEvents = function() {
       var loadedCount;
-      selectedEvents = selectedEvents();
+      selectedEvents = selectedEvents().slice(0, $scope.maxSelection);
+      if (!selectedEvents.length) {
+        return;
+      }
       $scope.loadingMessage = "Loading " + selectedEvents.length + " events...";
       loadedCount = 0;
       return async.reduce(selectedEvents, {}, function(memo, event, cb) {
@@ -190,7 +196,7 @@ ev.directive('attendeeTable', [
       templateUrl: 'attendee-table.html',
       link: function(scope, element, attr) {
         scope.eventIds = Object.keys(scope.events);
-        scope.tableHeight = window.innerHeight ? "" + (window.innerHeight - 150) + "px" : '500px';
+        scope.tableHeight = window.innerHeight ? "" + (window.innerHeight - 40) + "px" : '350px';
         scope.columnWidth = (80 / scope.eventIds.length) - 0.1;
         scope.rsvpMeta = rsvpMeta;
         return scope.getScore = function(attendee) {
