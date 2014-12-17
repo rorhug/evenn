@@ -25,12 +25,16 @@ ev.controller('MainCtrl', [
     });
     return bindRedirector = function() {
       return $scope.$on('$locationChangeStart', function(e) {
-        if ($scope.user.fb) {
-          if ($location.url() !== '/select' && !$scope.user.events) {
+        var url;
+        url = $location.url();
+        if (_.contains(['/loading', '/about'], url)) {
+
+        } else if ($scope.user.fb) {
+          if (url !== '/select' && !$scope.user.events) {
             return $location.url('/select');
           }
         } else {
-          if (!_.contains(['/login', '/loading'], $location.url())) {
+          if (!_.contains(['/login'], url)) {
             return $location.url('/login');
           }
         }
@@ -85,14 +89,13 @@ ev.controller('SelectEventsCtrl', [
         label: "" + events.length
       });
     });
-    $scope.maxSelection = 3;
+    $scope.maxSelection = 5;
     selectedEvents = function() {
       return _.filter($scope.availableEvents, 'selected');
     };
     $scope.selectedEventCount = 0;
     $scope.updateSelectedEventCount = function() {
-      $scope.selectedEventCount = selectedEvents().length;
-      return console.log($scope.selectedEventCount);
+      return $scope.selectedEventCount = selectedEvents().length;
     };
     return $scope.analyseEvents = function() {
       var loadedCount;
@@ -160,6 +163,15 @@ ev.directive('stRatio', function() {
       var ratio;
       ratio = +attr.stRatio;
       return element.css('width', ratio + '%');
+    }
+  };
+});
+
+ev.directive('aboutEvenn', function() {
+  return {
+    templateUrl: 'about.html',
+    link: function(scope) {
+      return scope.isDirective = true;
     }
   };
 });
@@ -245,6 +257,8 @@ ev.config([
     }).when('/login', {
       templateUrl: 'login.html',
       controller: 'LoginCtrl'
+    }).when('/about', {
+      templateUrl: 'about.html'
     });
     angular.extend($tooltipProvider.defaults, {
       trigger: 'hover',

@@ -20,6 +20,11 @@ ev.directive('stRatio', ->
     element.css 'width', ratio + '%'
 )
 
+ev.directive('aboutEvenn', ->
+  templateUrl: 'about.html'
+  link: (scope) -> scope.isDirective = true
+)
+
 ev.directive('attendeeTable', [
   ->
     rsvpMeta =

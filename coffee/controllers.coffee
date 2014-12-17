@@ -24,11 +24,14 @@ ev.controller('MainCtrl', [
 
     bindRedirector = ->
       $scope.$on('$locationChangeStart', (e) ->
-        if $scope.user.fb
-          if $location.url() isnt '/select' and not $scope.user.events
+        url = $location.url()
+        if _.contains(['/loading', '/about'], url)
+          return
+        else if $scope.user.fb
+          if url isnt '/select' and not $scope.user.events
             $location.url('/select')
         else
-          $location.url('/login') unless _.contains(['/login', '/loading'], $location.url())
+          $location.url('/login') unless _.contains(['/login'], url)
     )
 ])
 

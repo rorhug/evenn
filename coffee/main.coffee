@@ -29,6 +29,8 @@ ev.config([
     ).when('/login',
       templateUrl: 'login.html'
       controller: 'LoginCtrl'
+    ).when('/about',
+      templateUrl: 'about.html'
     )
 
     angular.extend $tooltipProvider.defaults,
