@@ -8,9 +8,8 @@ ev = angular.module('evenn');
 
 ev.controller('MainCtrl', [
   '$scope', '$http', '$location', 'Facebook', function($scope, $http, $location, Facebook) {
-    var bindRedirector, goingToPath;
+    var bindRedirector;
     $scope.user = {};
-    goingToPath = $location.url();
     $location.url('/loading');
     Facebook.getLoginStatus(function(response) {
       if (response.status === 'connected') {
@@ -41,14 +40,29 @@ ev.controller('MainCtrl', [
 ]);
 
 ev.controller('LoginCtrl', [
-  '$scope', '$http', '$location', 'Facebook', function($scope, $http, $location, Facebook) {
+  '$scope', '$http', '$location', '$alert', 'Facebook', function($scope, $http, $location, $alert, Facebook) {
+    var showError;
+    showError = function() {
+      return $alert({
+        title: 'Error',
+        content: 'Best check yo self, you\'re not looking too good.',
+        placement: 'top',
+        type: 'danger',
+        show: true
+      });
+    };
     return $scope.login = function() {
       return Facebook.login(function(response) {
         if (response.status === 'connected') {
-          return $location.url('/select');
+          return Facebook.api('/me', function(response) {
+            $scope.user.fb = response;
+            return $location.url('/select');
+          });
+        } else {
+          return showError();
         }
       }, {
-        scope: 'user_events'
+        scope: 'user_events,rsvp_event'
       });
     };
   }

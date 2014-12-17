@@ -8,7 +8,7 @@ ev.controller('MainCtrl', [
   ($scope, $http, $location, Facebook) ->
     $scope.user = {}
 
-    goingToPath = $location.url()
+    # goingToPath = $location.url()
     $location.url('/loading')
 
     Facebook.getLoginStatus (response) ->
@@ -36,12 +36,28 @@ ev.controller('LoginCtrl', [
   '$scope'
   '$http'
   '$location'
+  '$alert'
   'Facebook'
-  ($scope, $http, $location, Facebook) ->
+  ($scope, $http, $location, $alert, Facebook) ->
+    showError = ->
+      $alert(
+        title: 'Error'
+        content: 'Best check yo self, you\'re not looking too good.'
+        placement: 'top'
+        type: 'danger'
+        show: true
+      )
+
     $scope.login = ->
       Facebook.login((response) ->
-        $location.url('/select') if response.status is 'connected'
-      , { scope: 'user_events' })
+        if response.status is 'connected'
+          Facebook.api('/me', (response) ->
+            $scope.user.fb = response
+            $location.url('/select')
+          )
+        else
+          showError()
+      , { scope: 'user_events,rsvp_event' })
 ])
 
 ev.controller('SelectEventsCtrl', [
