@@ -54,12 +54,22 @@ ev.controller('SelectEventsCtrl', [
   'UserStore'
   ($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) ->
 
-    Facebook.api('/me/events/attending',
-      limit: 100
-    , (events) ->
-      $scope.availableEvents = events.data
+    async.reduce(['attending', 'not_replied', 'maybe', 'declined'], [], (memo, status, cb) ->
+      Facebook.api("/me/events/#{status}",
+        limit: 50
+        since: Math.round(new Date().getTime() / 1000)
+      , (events) ->
+        cb(null, memo.concat(events.data))
+      )
+    , (err, events) ->
+      $scope.availableEvents = events
+      $analytics.eventTrack('events_select_length',
+        category: 'interesting'
+        label: "#{events.length}"
+      )
     )
 
+    
     selectedEvents = -> _.filter($scope.availableEvents, 'selected')
     $scope.updateSelectedEventCount = ->
       $scope.selectedEventCount = selectedEvents().length

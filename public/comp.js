@@ -57,10 +57,19 @@ ev.controller('LoginCtrl', [
 ev.controller('SelectEventsCtrl', [
   '$scope', '$location', '$timeout', '$analytics', 'Facebook', 'FbEvent', 'UserStore', function($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) {
     var selectedEvents;
-    Facebook.api('/me/events/attending', {
-      limit: 100
-    }, function(events) {
-      return $scope.availableEvents = events.data;
+    async.reduce(['attending', 'not_replied', 'maybe', 'declined'], [], function(memo, status, cb) {
+      return Facebook.api("/me/events/" + status, {
+        limit: 50,
+        since: Math.round(new Date().getTime() / 1000)
+      }, function(events) {
+        return cb(null, memo.concat(events.data));
+      });
+    }, function(err, events) {
+      $scope.availableEvents = events;
+      return $analytics.eventTrack('events_select_length', {
+        category: 'interesting',
+        label: "" + events.length
+      });
     });
     selectedEvents = function() {
       return _.filter($scope.availableEvents, 'selected');
