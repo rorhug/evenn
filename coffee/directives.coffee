@@ -13,3 +13,10 @@ ev.directive("loader", [->
     </div>
   """
 ])
+
+
+ev.directive("stRatio", ->
+  link: (scope, element, attr) ->
+    ratio = +(attr.stRatio)
+    element.css "width", ratio + "%"
+)

@@ -22,6 +22,7 @@
     "angular-strap": "*",
     "angular-facebook": "*",
     "lodash": "*",
-    "async": "*"
+    "async": "*",
+    "angular-smart-table": "*"
   }
 }

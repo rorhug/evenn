@@ -1,6 +1,6 @@
 var ev;
 
-ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook']);
+ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics']);
 
 var ev;
 
@@ -55,7 +55,7 @@ ev.controller('LoginCtrl', [
 ]);
 
 ev.controller('SelectEventsCtrl', [
-  '$scope', '$location', '$timeout', 'Facebook', 'FbEvent', function($scope, $location, $timeout, Facebook, FbEvent) {
+  '$scope', '$location', '$timeout', '$analytics', 'Facebook', 'FbEvent', 'UserStore', function($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) {
     var selectedEvents;
     Facebook.api('/me/events/attending', {
       limit: 100
@@ -85,6 +85,13 @@ ev.controller('SelectEventsCtrl', [
         $scope.user.eventIds = Object.keys(events);
         $scope.loadingMessage = "Event download complete. Please wait...";
         return $timeout(function() {
+          var label;
+          label = "" + $scope.user.eventIds.length + "e" + (_.size(UserStore.users)) + "u";
+          console.log(label);
+          $analytics.eventTrack('analyse', {
+            category: 'interesting',
+            label: label
+          });
           $location.url('/');
           return $scope.user.eventsReady = true;
         }, 1000);
@@ -119,7 +126,8 @@ ev.controller('TableCtrl', [
       }
     };
     $scope.highlightId = $routeParams.highlight;
-    $scope.innerHeight = window.innerHeight;
+    $scope.innerHeight = window.innerHeight ? "" + (window.innerHeight - 150) + "px" : 500;
+    $scope.columnWidth = (80 / $scope.user.eventIds.length) - 0.1;
     $scope.attendees = _.values(UserStore.users);
     return $scope.getScore = function(attendee) {
       return _.reduce($scope.user.eventIds, function(result, eventId, index) {
@@ -154,12 +162,22 @@ ev.directive("loader", [
   }
 ]);
 
+ev.directive("stRatio", function() {
+  return {
+    link: function(scope, element, attr) {
+      var ratio;
+      ratio = +attr.stRatio;
+      return element.css("width", ratio + "%");
+    }
+  };
+});
+
 var ev;
 
 ev = angular.module('evenn');
 
 ev.config([
-  '$routeProvider', '$tooltipProvider', '$modalProvider', '$popoverProvider', '$dropdownProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, FacebookProvider) {
+  '$routeProvider', '$tooltipProvider', '$modalProvider', '$popoverProvider', '$dropdownProvider', '$analyticsProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, FacebookProvider) {
     $routeProvider.when('/', {
       templateUrl: 'events_home.html',
       controller: 'EventsHomeCtrl'

@@ -6,8 +6,9 @@ ev.config([
   '$modalProvider'
   '$popoverProvider'
   '$dropdownProvider'
+  '$analyticsProvider'
   'FacebookProvider'
-  ($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, FacebookProvider) ->
+  ($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, FacebookProvider) ->
     $routeProvider.when('/',
       templateUrl: 'events_home.html'
       controller: 'EventsHomeCtrl'

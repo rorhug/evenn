@@ -3,4 +3,7 @@ ev = angular.module('evenn', [
   'ngAnimate'
   'mgcrea.ngStrap'
   'facebook'
+  'smart-table'
+  'angulartics'
+  'angulartics.google.analytics'
 ])

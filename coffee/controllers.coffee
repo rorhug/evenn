@@ -48,9 +48,11 @@ ev.controller('SelectEventsCtrl', [
   '$scope'
   '$location'
   '$timeout'
+  '$analytics'
   'Facebook'
   'FbEvent'
-  ($scope, $location, $timeout, Facebook, FbEvent) ->
+  'UserStore'
+  ($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) ->
 
     Facebook.api('/me/events/attending',
       limit: 100
@@ -79,6 +81,12 @@ ev.controller('SelectEventsCtrl', [
         $scope.user.eventIds = Object.keys(events)
         $scope.loadingMessage = "Event download complete. Please wait..."
         $timeout( ->
+          label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
+          console.log(label)
+          $analytics.eventTrack('analyse',
+            category: 'interesting'
+            label: label
+          )
           $location.url('/')
           $scope.user.eventsReady = true
         , 1000)
@@ -112,7 +120,8 @@ ev.controller('TableCtrl', [
         unsure: 'Maybe'
         not_replied: 'Invited'
     $scope.highlightId = $routeParams.highlight
-    $scope.innerHeight = window.innerHeight
+    $scope.innerHeight = if window.innerHeight then "#{window.innerHeight - 150}px" else 500
+    $scope.columnWidth = (80 / $scope.user.eventIds.length) - 0.1
 
     $scope.attendees = _.values(UserStore.users)
     $scope.getScore = (attendee) ->
