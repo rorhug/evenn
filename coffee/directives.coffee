@@ -47,7 +47,7 @@ ev.directive('attendeeTable', [
     templateUrl: 'attendee-table.html'
     link: (scope, element, attr) ->
       scope.eventIds = Object.keys(scope.events)
-      scope.tableHeight = if window.innerHeight then "#{window.innerHeight - 150}px" else '500px'
+      scope.tableHeight = if window.innerHeight then "#{window.innerHeight - 40}px" else '350px'
       scope.columnWidth = (80 / scope.eventIds.length) - 0.1
       scope.rsvpMeta = rsvpMeta
 
