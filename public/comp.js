@@ -141,7 +141,13 @@ ev.controller('TableCtrl', [
 
 ev.controller('VennCtrl', ['$scope', function($scope) {}]);
 
-ev.controller('GenderRatiosCtrl', ['$scope', function($scope) {}]);
+ev.controller('GenderRatioIndexCtrl', [
+  '$scope', 'UserStore', function($scope, UserStore) {
+    return UserStore.getAllGenders(function(users) {
+      return $scope.gendersLoaded = true;
+    });
+  }
+]);
 
 var ev;
 
@@ -153,6 +159,30 @@ ev.directive('loader', [
       restrict: 'AE',
       replace: true,
       template: "<div class=\"spinner\">\n  <div class=\"rect1\"></div>\n  <div class=\"rect2\"></div>\n  <div class=\"rect3\"></div>\n  <div class=\"rect4\"></div>\n  <div class=\"rect5\"></div>\n</div>"
+    };
+  }
+]);
+
+ev.directive('genderRatio', [
+  function() {
+    return {
+      restrict: 'AE',
+      scope: {
+        counts: "="
+      },
+      template: "<span>\n  <span class=\"text-danger\">{{counts.ratio}} girls</span> to\n  <span class=\"text-info\">1 guy</span>\n</span>"
+    };
+  }
+]);
+
+ev.directive('genderCounts', [
+  function() {
+    return {
+      restrict: 'AE',
+      scope: {
+        counts: "="
+      },
+      template: "<span>\n  <span class=\"text-danger\">{{counts.f}} <i class=\"fa fa-female\"></i></span>\n  <span class=\"text-info\">{{counts.m}} <i class=\"fa fa-male\"></i></span>\n  <span ng-show=\"counts.n\">{{counts.n}} <i class=\"fa fa-user\"></i></span>\n</span>"
     };
   }
 ]);
@@ -238,14 +268,17 @@ ev = angular.module('evenn');
 ev.config([
   '$routeProvider', '$tooltipProvider', '$modalProvider', '$popoverProvider', '$dropdownProvider', '$analyticsProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, FacebookProvider) {
     $routeProvider.when('/', {
-      templateUrl: 'events_home.html',
+      templateUrl: 'events-home.html',
       controller: 'EventsHomeCtrl'
     }).when('/venn', {
       templateUrl: 'venn.html',
       controller: 'VennCtrl'
     }).when('/genders', {
-      templateUrl: 'genders.html',
-      controller: 'GenderRatiosCtrl'
+      templateUrl: 'gender-ratio-index.html',
+      controller: 'GenderRatioIndexCtrl'
+    }).when('/genders/:id', {
+      templateUrl: 'gender-ratio-show.html',
+      controller: 'GenderRatioShowCtrl'
     }).when('/table', {
       templateUrl: 'table.html',
       controller: 'TableCtrl'
@@ -304,12 +337,41 @@ ev = angular.module('evenn');
 
 ev.service('genderize', [
   '$http', function($http) {
-    return $http;
+    var resToGender, shortGenders;
+    shortGenders = {
+      'male': 'm',
+      'female': 'f'
+    };
+    resToGender = function(response) {
+      if (response) {
+        if (response.probability > 0.8) {
+          return shortGenders[response.gender];
+        } else {
+          return 'n';
+        }
+      } else {
+        return null;
+      }
+    };
+    return {
+      getBulk: function(names, cb) {
+        var queryString;
+        queryString = _.map(names, function(name, index) {
+          return "name[" + index + "]=" + name;
+        }).join('&');
+        return $http.get("http://api.genderize.io?" + queryString).success(function(data) {
+          return cb(_.reduce(data, function(memo, res) {
+            memo[res.name] = resToGender(res);
+            return memo;
+          }, {}));
+        });
+      }
+    };
   }
 ]);
 
 ev.service('UserStore', [
-  function() {
+  'genderize', function(genderize) {
     var User, store;
     User = (function() {
       function User(fbObj) {
@@ -330,7 +392,7 @@ ev.service('UserStore', [
     })();
     return store = {
       users: {},
-      getAllGenders: function(cb) {},
+      loadedGenders: false,
       addUserObjByEvent: function(eventId, userObj) {
         var userInstance;
         userInstance = this.users[userObj.id];
@@ -340,6 +402,34 @@ ev.service('UserStore', [
         }
         userInstance.addRsvp(eventId, userObj.rsvp_status);
         return userInstance;
+      },
+      getAllGenders: function(cb) {
+        var namesToIds, self;
+        self = this;
+        if (this.loadedGenders) {
+          return cb(self.users);
+        }
+        namesToIds = _.reduce(this.users, function(memo, user) {
+          var name;
+          if (!user.first_name) {
+            return;
+          }
+          name = user.first_name.toLowerCase().trim().split(' ')[0];
+          if (!memo[name]) {
+            memo[name] = [];
+          }
+          memo[name].push(user.id);
+          return memo;
+        }, {});
+        return genderize.getBulk(Object.keys(namesToIds), function(namesToGenders) {
+          _.forEach(namesToGenders, function(gender, name) {
+            return _.forEach(namesToIds[name], function(id) {
+              return self.users[id].gender = gender;
+            });
+          });
+          self.loadedGenders = true;
+          return cb(self.users);
+        });
       }
     };
   }
@@ -368,6 +458,25 @@ ev.service('FbEvent', [
           });
         });
       }
+
+      FbEvent.prototype.going = function() {
+        var self;
+        if (this._going) {
+          return this._going;
+        }
+        self = this;
+        return this._going = _.filter(this.invited, function(user) {
+          return user.events[self.id] === 'attending';
+        });
+      };
+
+      FbEvent.prototype.genderCounts = function() {
+        if (this._counts) {
+          return this._counts;
+        }
+        this._counts = _.countBy(this.invited, 'gender');
+        return this._counts.ratio = Math.round(this._counts.f / this._counts.m * 100) / 100;
+      };
 
       return FbEvent;
 

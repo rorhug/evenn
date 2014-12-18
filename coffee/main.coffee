@@ -10,14 +10,17 @@ ev.config([
   'FacebookProvider'
   ($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, FacebookProvider) ->
     $routeProvider.when('/',
-      templateUrl: 'events_home.html'
+      templateUrl: 'events-home.html'
       controller: 'EventsHomeCtrl'
     ).when('/venn',
       templateUrl: 'venn.html'
       controller: 'VennCtrl'
     ).when('/genders',
-      templateUrl: 'genders.html'
-      controller: 'GenderRatiosCtrl'
+      templateUrl: 'gender-ratio-index.html'
+      controller: 'GenderRatioIndexCtrl'
+    ).when('/genders/:id',
+      templateUrl: 'gender-ratio-show.html'
+      controller: 'GenderRatioShowCtrl'
     ).when('/table',
       templateUrl: 'table.html'
       controller: 'TableCtrl'

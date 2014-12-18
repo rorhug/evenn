@@ -122,7 +122,7 @@
   </div>
 </script>
 
-<script type="text/ng-template" id="events_home.html">
+<script type="text/ng-template" id="events-home.html">
   <h4>Selected Events:</h4>
   <div class="row">
     <div class="col-sm-6 col-md-4" ng-repeat="(id, event) in user.events">
@@ -162,9 +162,41 @@
   <attendee-table attendees="attendees" events="user.events" highlight-id="highlightId"></attendee-table>
 </script>
 
-<script type="text/ng-template" id="genders.html">
-  <h4>Gender Ratios</h4>
-  Coming soon...
+<script type="text/ng-template" id="gender-ratio-index.html">
+  <h3>Gender Ratios</h3>
+
+  <div class="row">
+    <div class="col-md-7" ng-hide="gendersLoaded">
+      <h4 class="text-center">Getting gender data...</h4>
+    </div>
+    <div class="col-md-7" ng-if="gendersLoaded">
+      <div class="list-group">
+        <a ng-repeat="(id, event) in user.events" class="list-group-item">
+          <h4 class="list-group-item-heading">
+            <span ng-bind="event.name"></span>
+            <gender-ratio counts="event.genderCounts()"></gender-ratio>
+          </h4>
+          <p class="list-group-item-text">
+            <small>{{event.location}}, {{event.start_time| date : 'yyyy-MM-dd HH:mm'}}</small>
+            <gender-counts counts="event.genderCounts()"></gender-counts>
+          </p>
+        </a>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">How this works</h4>
+        </div>
+        <div class="panel-body">
+          Facebook unfortunately doesn't give access to gender information freely via their API so I've had to come up with a compromise. It uses a service called <a href="http://genderize.io/">genderize.io</a> which figures out gender using first names. Obviously unisex names exist and so won't appear in the ratio. This should give a good indication though.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
 </script>
 
 <script type="text/ng-template" id="venn.html">

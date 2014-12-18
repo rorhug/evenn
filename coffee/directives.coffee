@@ -14,6 +14,31 @@ ev.directive('loader', [->
   """
 ])
 
+ev.directive('genderRatio', [->
+  restrict: 'AE'
+  scope:
+    counts: "="
+  template: """
+    <span>
+      <span class="text-danger">{{counts.ratio}} girls</span> to
+      <span class="text-info">1 guy</span>
+    </span>
+  """
+])
+
+ev.directive('genderCounts', [->
+  restrict: 'AE'
+  scope:
+    counts: "="
+  template: """
+    <span>
+      <span class="text-danger">{{counts.f}} <i class="fa fa-female"></i></span>
+      <span class="text-info">{{counts.m}} <i class="fa fa-male"></i></span>
+      <span ng-show="counts.n">{{counts.n}} <i class="fa fa-user"></i></span>
+    </span>
+  """
+])
+
 ev.directive('stRatio', ->
   link: (scope, element, attr) ->
     ratio = +(attr.stRatio)

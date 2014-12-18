@@ -140,7 +140,11 @@ ev.controller('VennCtrl', [
   ($scope) ->
 ])
 
-ev.controller('GenderRatiosCtrl', [
+ev.controller('GenderRatioIndexCtrl', [
   '$scope'
-  ($scope) ->
+  'UserStore'
+  ($scope, UserStore) ->
+    UserStore.getAllGenders((users) ->
+      $scope.gendersLoaded = true
+    )
 ])
