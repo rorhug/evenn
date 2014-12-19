@@ -1,32 +1,22 @@
 ev = angular.module('evenn')
 
-ev.service('genderize', [
+ev.service('genders', [
   '$http'
   ($http) ->
-    shortGenders = { 'male': 'm', 'female': 'f' }
-    resToGender = (response) ->
-      if response
-        if response.probability > 0.8
-          shortGenders[response.gender]
-        else
-          'n'
-      else
-        null
-
-    # ['rory', 'sarah', 'alex'] => ['m', 'f', 'n']
+    # ['rory', 'sarah', 'alex'] => {'rory': 'm', 'sarah': 'f', 'alex': 'n'}
     getBulk: (names, cb) ->
-      queryString = _.map(names, (name, index) -> "name[#{index}]=#{name}").join('&')
-      $http.get("http://api.genderize.io?#{queryString}").success((data) ->
-        cb(_.reduce(data, (memo, res) ->
-          memo[res.name] = resToGender(res)
-          memo
-        , {}))
+      $http(
+        method: 'POST'
+        url: 'http://gender.rory.ie/bulk'
+        data: { names: names }
+      ).success((data) ->
+        cb(data.names)
       )
 ])
 
 ev.service('UserStore', [
-  'genderize'
-  (genderize) ->
+  'genders'
+  (genders) ->
     class User
       constructor: (fbObj) ->
         @id = fbObj.id
@@ -59,7 +49,7 @@ ev.service('UserStore', [
           memo[name].push(user.id)
           memo
         , {})
-        genderize.getBulk(Object.keys(namesToIds), (namesToGenders) ->
+        genders.getBulk(Object.keys(namesToIds), (namesToGenders) ->
           _.forEach(namesToGenders, (gender, name) ->
             _.forEach(namesToIds[name], (id) -> self.users[id].gender = gender)
           )

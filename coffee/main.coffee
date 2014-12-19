@@ -7,8 +7,9 @@ ev.config([
   '$popoverProvider'
   '$dropdownProvider'
   '$analyticsProvider'
+  '$httpProvider'
   'FacebookProvider'
-  ($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, FacebookProvider) ->
+  ($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, $httpProvider, FacebookProvider) ->
     $routeProvider.when('/',
       templateUrl: 'events-home.html'
       controller: 'EventsHomeCtrl'
@@ -58,6 +59,11 @@ ev.config([
       appId: '316035781927497'
       version: 'v2.2'
     )
+
+    $httpProvider.defaults.headers.common = {}
+    $httpProvider.defaults.headers.post = {}
+    $httpProvider.defaults.headers.put = {}
+    $httpProvider.defaults.headers.patch = {}
 ])
 
 ev.run([

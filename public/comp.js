@@ -266,7 +266,7 @@ var ev;
 ev = angular.module('evenn');
 
 ev.config([
-  '$routeProvider', '$tooltipProvider', '$modalProvider', '$popoverProvider', '$dropdownProvider', '$analyticsProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, FacebookProvider) {
+  '$routeProvider', '$tooltipProvider', '$modalProvider', '$popoverProvider', '$dropdownProvider', '$analyticsProvider', '$httpProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, $httpProvider, FacebookProvider) {
     $routeProvider.when('/', {
       templateUrl: 'events-home.html',
       controller: 'EventsHomeCtrl'
@@ -309,10 +309,14 @@ ev.config([
     angular.extend($dropdownProvider.defaults, {
       animation: null
     });
-    return FacebookProvider.init({
+    FacebookProvider.init({
       appId: '316035781927497',
       version: 'v2.2'
     });
+    $httpProvider.defaults.headers.common = {};
+    $httpProvider.defaults.headers.post = {};
+    $httpProvider.defaults.headers.put = {};
+    return $httpProvider.defaults.headers.patch = {};
   }
 ]);
 
@@ -335,35 +339,18 @@ var ev;
 
 ev = angular.module('evenn');
 
-ev.service('genderize', [
+ev.service('genders', [
   '$http', function($http) {
-    var resToGender, shortGenders;
-    shortGenders = {
-      'male': 'm',
-      'female': 'f'
-    };
-    resToGender = function(response) {
-      if (response) {
-        if (response.probability > 0.8) {
-          return shortGenders[response.gender];
-        } else {
-          return 'n';
-        }
-      } else {
-        return null;
-      }
-    };
     return {
       getBulk: function(names, cb) {
-        var queryString;
-        queryString = _.map(names, function(name, index) {
-          return "name[" + index + "]=" + name;
-        }).join('&');
-        return $http.get("http://api.genderize.io?" + queryString).success(function(data) {
-          return cb(_.reduce(data, function(memo, res) {
-            memo[res.name] = resToGender(res);
-            return memo;
-          }, {}));
+        return $http({
+          method: 'POST',
+          url: 'http://gender.rory.ie/bulk',
+          data: {
+            names: names
+          }
+        }).success(function(data) {
+          return cb(data.names);
         });
       }
     };
@@ -371,7 +358,7 @@ ev.service('genderize', [
 ]);
 
 ev.service('UserStore', [
-  'genderize', function(genderize) {
+  'genders', function(genders) {
     var User, store;
     User = (function() {
       function User(fbObj) {
@@ -421,7 +408,7 @@ ev.service('UserStore', [
           memo[name].push(user.id);
           return memo;
         }, {});
-        return genderize.getBulk(Object.keys(namesToIds), function(namesToGenders) {
+        return genders.getBulk(Object.keys(namesToIds), function(namesToGenders) {
           _.forEach(namesToGenders, function(gender, name) {
             return _.forEach(namesToIds[name], function(id) {
               return self.users[id].gender = gender;
