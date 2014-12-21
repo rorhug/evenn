@@ -7,66 +7,44 @@ var ev;
 ev = angular.module('evenn');
 
 ev.controller('MainCtrl', [
-  '$scope', '$http', '$location', 'Facebook', function($scope, $http, $location, Facebook) {
-    var bindRedirector;
-    $scope.user = {};
-    $location.url('/loading');
-    Facebook.getLoginStatus(function(response) {
-      if (response.status === 'connected') {
-        return Facebook.api('/me', function(response) {
-          $scope.user.fb = response;
-          $location.url('/select');
-          return bindRedirector();
-        });
-      } else {
-        $location.url('/login');
-        return bindRedirector();
-      }
-    });
-    return bindRedirector = function() {
-      return $scope.$on('$locationChangeStart', function(e) {
-        var url;
-        url = $location.url();
-        if (_.contains(['/loading', '/about'], url)) {
-
-        } else if ($scope.user.fb) {
-          if (url !== '/select' && !$scope.user.events) {
-            return $location.url('/select');
-          }
-        } else {
-          if (!_.contains(['/login'], url)) {
-            return $location.url('/login');
-          }
-        }
+  '$window', '$scope', '$http', '$location', 'Facebook', function($window, $scope, $http, $location, Facebook) {
+    $scope.goBack = function() {
+      console.log('back');
+      return $window.history.back();
+    };
+    return $scope.logout = function() {
+      Facebook.logout();
+      _.forEach(Object.keys($scope.user), function(k) {
+        return $scope.user[k];
       });
+      return $location.url("/login");
     };
   }
 ]);
 
 ev.controller('LoginCtrl', [
   '$scope', '$http', '$location', '$alert', 'Facebook', function($scope, $http, $location, $alert, Facebook) {
-    var showError;
-    showError = function() {
-      return $alert({
-        title: 'Error',
-        content: 'Best check yo self, you\'re not looking too good.',
-        placement: 'top',
-        type: 'danger',
-        show: true
-      });
-    };
     return $scope.login = function() {
       return Facebook.login(function(response) {
+        var availablePermissions;
+        availablePermissions = response.authResponse.grantedScopes.split(',');
         if (response.status === 'connected') {
-          return Facebook.api('/me', function(response) {
-            $scope.user.fb = response;
-            return $location.url('/select');
-          });
+          if (_.contains(availablePermissions, 'user_events') && _.contains(availablePermissions, 'rsvp_event')) {
+            return Facebook.api('/me', function(response) {
+              $scope.user.fb = response;
+              return $location.url('/select');
+            });
+          } else {
+            $scope.loginError = "Error logging in. All permissions must be accepted!";
+          }
         } else {
-          return showError();
+          $scope.loginError = "There was a problem logging into Facebook!";
         }
+        return Facebook.logout();
       }, {
-        scope: 'user_events,rsvp_event'
+        scope: 'user_events,rsvp_event',
+        return_scopes: true,
+        auth_type: 'rerequest'
       });
     };
   }
@@ -78,7 +56,7 @@ ev.controller('SelectEventsCtrl', [
     async.reduce(['attending', 'not_replied', 'maybe', 'declined'], [], function(memo, status, cb) {
       return Facebook.api("/me/events/" + status, {
         limit: 50,
-        since: Math.round(new Date().getTime() / 1000)
+        since: Math.round(new Date().getTime() / 1000) - 86400
       }, function(events) {
         return cb(null, memo.concat(events.data));
       });
@@ -266,7 +244,7 @@ var ev;
 ev = angular.module('evenn');
 
 ev.config([
-  '$routeProvider', '$tooltipProvider', '$modalProvider', '$popoverProvider', '$dropdownProvider', '$analyticsProvider', '$httpProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $analyticsProvider, $httpProvider, FacebookProvider) {
+  '$routeProvider', '$tooltipProvider', '$modalProvider', '$popoverProvider', '$dropdownProvider', '$httpProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $httpProvider, FacebookProvider) {
     $routeProvider.when('/', {
       templateUrl: 'events-home.html',
       controller: 'EventsHomeCtrl'
@@ -282,8 +260,6 @@ ev.config([
     }).when('/table', {
       templateUrl: 'table.html',
       controller: 'TableCtrl'
-    }).when('/loading', {
-      templateUrl: 'loading.html'
     }).when('/select', {
       templateUrl: 'select.html',
       controller: 'SelectEventsCtrl'
@@ -321,8 +297,46 @@ ev.config([
 ]);
 
 ev.run([
-  '$rootScope', '$location', function($rootScope, $location) {
-    return $rootScope.location = $location;
+  '$rootScope', '$location', '$route', '$timeout', 'Facebook', function($rootScope, $location, $route, $timeout, Facebook) {
+    var delayedLoad, noAuthRoutes;
+    $rootScope.user = {};
+    $rootScope.location = $location;
+    noAuthRoutes = ['/login', '/about'];
+    delayedLoad = function() {
+      return $timeout((function() {
+        return $rootScope.evennLoaded = true;
+      }), 1000);
+    };
+    return $rootScope.$on('$locationChangeStart', function(e, next, current) {
+      var url;
+      url = $location.url();
+      console.log(next);
+      if (_.contains(noAuthRoutes, url)) {
+        delayedLoad();
+      } else if ($rootScope.user.fb) {
+        if (!$rootScope.user.events) {
+          delayedLoad();
+          return $location.url('/select');
+        }
+      } else {
+        e.preventDefault();
+        return Facebook.getLoginStatus(function(response) {
+          console.log('login status');
+          if (response.status === 'connected') {
+            return Facebook.api('/me', function(response) {
+              $rootScope.user.fb = response;
+              $location.url('/select');
+              $route.reload();
+              return delayedLoad();
+            });
+          } else {
+            $location.url('/login');
+            $route.reload();
+            return delayedLoad();
+          }
+        });
+      }
+    });
   }
 ]);
 

@@ -23,6 +23,29 @@ input[type=search] {
   }
 }
 
+#start-screen {
+  background-color: white;
+  position: absolute;
+  display: block;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  z-index: 99999;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+  &.fade-out {
+    opacity: 0;
+    display: none;  
+  }
+  &.fade-out-add {
+    display: block;
+  }
+  h1 {
+    margin-top: 90px;
+  }
+}
+
 .thumbnail {
   .well-lg {
     margin-bottom: 5px;
@@ -54,52 +77,60 @@ input[type=search] {
 
 
 table {
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    height: 500px; /* this can vary */
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+  align-items: stretch;
+  height: 500px; /* this can vary */
 }
 
 table * {
-    box-sizing: inherit;
-    -moz-box-sizing: inherit;
+  box-sizing: inherit;
+  -moz-box-sizing: inherit;
 }
 
 thead {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+  align-items: stretch;
 }
 
 tbody {
-    overflow-y: scroll;
-    display: inline-block;
+  overflow-y: scroll;
+  display: inline-block;
 }
 
 thead > tr, tbody > tr, tfoot > tr {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: row;
+  -webkit-flex-direction: row;
+  flex-wrap: nowrap;
+  -webkit-flex-wrap: nowrap;
 }
 
 thead, tfoot {
-    flex-shrink: 0;
+  flex-shrink: 0;
+  -webkit-flex-shrink: 0;
 }
 
 th, tbody td {
-    width: 20%; /* this can vary */
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    display: inline-block;
+  width: 20%; /* this can vary */
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
 }
 
 tfoot {
-    display: inline-block;
+  display: inline-block;
 }
 
 tfoot td {
-    width: 100%;
-    display: inline-block;
+  width: 100%;
+  display: inline-block;
 }

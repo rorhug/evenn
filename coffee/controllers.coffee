@@ -1,38 +1,19 @@
 ev = angular.module('evenn')
 
 ev.controller('MainCtrl', [
+  '$window'
   '$scope'
   '$http'
   '$location'
   'Facebook'
-  ($scope, $http, $location, Facebook) ->
-    $scope.user = {}
+  ($window, $scope, $http, $location, Facebook) ->
+    $scope.goBack = ->
+      $window.history.back()
 
-    # goingToPath = $location.url()
-    $location.url('/loading')
-
-    Facebook.getLoginStatus (response) ->
-      if response.status is 'connected'
-        Facebook.api('/me', (response) ->
-          $scope.user.fb = response
-          $location.url('/select')
-          bindRedirector()
-        )
-      else
-        $location.url('/login')
-        bindRedirector()
-
-    bindRedirector = ->
-      $scope.$on('$locationChangeStart', (e) ->
-        url = $location.url()
-        if _.contains(['/loading', '/about'], url)
-          return
-        else if $scope.user.fb
-          if url isnt '/select' and not $scope.user.events
-            $location.url('/select')
-        else
-          $location.url('/login') unless _.contains(['/login'], url)
-    )
+    $scope.logout = ->
+      Facebook.logout()
+      _.forEach(Object.keys($scope.user), (k) -> $scope.user[k])
+      $location.url("/login")
 ])
 
 ev.controller('LoginCtrl', [
@@ -42,25 +23,25 @@ ev.controller('LoginCtrl', [
   '$alert'
   'Facebook'
   ($scope, $http, $location, $alert, Facebook) ->
-    showError = ->
-      $alert(
-        title: 'Error'
-        content: 'Best check yo self, you\'re not looking too good.'
-        placement: 'top'
-        type: 'danger'
-        show: true
-      )
-
     $scope.login = ->
       Facebook.login((response) ->
+        availablePermissions = response.authResponse.grantedScopes.split(',')
         if response.status is 'connected'
-          Facebook.api('/me', (response) ->
-            $scope.user.fb = response
-            $location.url('/select')
-          )
+          if _.contains(availablePermissions, 'user_events') && _.contains(availablePermissions, 'rsvp_event')
+            return Facebook.api('/me', (response) ->
+              $scope.user.fb = response
+              $location.url('/select')
+            )
+          else
+            $scope.loginError = "Error logging in. All permissions must be accepted!"
         else
-          showError()
-      , { scope: 'user_events,rsvp_event' })
+          $scope.loginError = "There was a problem logging into Facebook!"
+        Facebook.logout()
+      ,
+        scope: 'user_events,rsvp_event'
+        return_scopes: true
+        auth_type: 'rerequest'
+      )
 ])
 
 ev.controller('SelectEventsCtrl', [
@@ -75,7 +56,7 @@ ev.controller('SelectEventsCtrl', [
     async.reduce(['attending', 'not_replied', 'maybe', 'declined'], [], (memo, status, cb) ->
       Facebook.api("/me/events/#{status}",
         limit: 50
-        since: Math.round(new Date().getTime() / 1000)
+        since: Math.round(new Date().getTime() / 1000) - 86400
       , (events) ->
         cb(null, memo.concat(events.data))
       )

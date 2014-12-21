@@ -31,11 +31,17 @@
   <script src="/public/comp.js"></script>
 </head>
 <body ng-controller="MainCtrl">
+  <div id="start-screen" ng-class="{'fade-out': evennLoaded}">
+    <h1>Evenn</h1>
+    <p>Loading...</p>
+    <small class="text-muted">Made by Rory Hughes</small>
+  </div>
+
   <div class="container">
     <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" role="navigation" bs-navbar>
       <div class="container-fluid" bs-collapse start-collapsed="true">
         <div class="navbar-header">
-          <button type="button" ng-if="user.eventsReady" class="navbar-toggle collapsed" bs-collapse-toggle>
+          <button type="button" ng-show="user.fb" class="navbar-toggle collapsed" bs-collapse-toggle>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -44,8 +50,8 @@
           <p ng-hide="user.eventsReady" class="navbar-text">See connections between Facebook events</p>
         </div>
 
-        <div class="collapse navbar-collapse" ng-if="user.eventsReady" bs-collapse-target>
-          <ul class="nav navbar-nav" ng-click="console.log('yp')">
+        <div class="collapse navbar-collapse" bs-collapse-target>
+          <ul class="nav navbar-nav" ng-show="user.eventsReady">
             <li data-match-route="/$">
               <a bs-collapse-toggle href="#/"><i class="fa fa-calendar"></i> Events</a>
             </li>
@@ -59,6 +65,11 @@
               <a bs-collapse-toggle href="#/genders"><i class="fa fa-users"></i> Gender Ratios</a>
             </li>
           </ul>
+          <ul class="nav navbar-nav navbar-right" ng-show="user.fb">
+            <li>
+              <a bs-collapse-toggle ng-click="logout()"><i class="fa fa-sign-out"></i> Logout</a>
+            </li>
+          </ul>
         </div>
       </div>
     </nav>
@@ -70,13 +81,9 @@
     </div>
   </div>
 
-
-<script type="text/ng-template" id="loading.html">
-  <h3 class="text-muted">Loading Facebook...</h3>
-</script>
-
 <script type="text/ng-template" id="login.html">
   <h1 class="text-center">Evenn</h1>
+  <div class="alert alert-danger text-center" ng-show="loginError" ng-bind="loginError"></div>
   <p class="text-center">
     <button type="button" class="btn btn-primary btn-lg" ng-click="login()">
       <i class="fa fa-facebook-square"></i> Login with Facebook
@@ -86,8 +93,7 @@
 </script>
 
 <script type="text/ng-template" id="select.html">
-  <h3 class="text-muted" ng-hide="availableEvents">Loading events...</h3>
-  <div ng-if="availableEvents" class="panel panel-default select-events-panel">
+  <div class="panel panel-default select-events-panel">
     <div ng-show="loadingMessage" class="panel-body">
       <strong ng-bind="loadingMessage"></strong>
     </div>
@@ -101,7 +107,9 @@
       <div class="clearfix"></div>
     </div>
     <div ng-hide="loadingMessage" class="panel-body">
-      <div class="list-group">
+      <h3 class="text-muted text-center" ng-hide="availableEvents">Loading events...</h3>
+      <div class="list-group" ng-show="availableEvents">
+        <p class="text-center text-muted" ng-hide="availableEvents.length">No events available :(</p>
         <a ng-repeat="event in availableEvents"
            ng-click="event.selected = !event.selected; updateSelectedEventCount()"
            ng-class="{'active': event.selected}"
@@ -195,8 +203,6 @@
       </div>
     </div>
   </div>
-
-  
 </script>
 
 <script type="text/ng-template" id="venn.html">
@@ -232,14 +238,14 @@
 </script>
 
 <script type="text/ng-template" id="about.html">
-  <a href="#/" class="btn btn-block btn-default" ng-hide="isDirective">
+  <a ng-click="goBack()" class="btn btn-block btn-default" ng-hide="isDirective">
     <i class="fa fa-chevron-left"></i> Back
   </a>
   <h3>About</h3>
   <ul>
     <li>Who's going to all the events I'm attending?</li>
-    <li>I'm invited to two gafs on the same night. Which ones are my friends going to?</li>
-    <li>What will the girl/boy ratio at the party be?</li>
+    <li>I'm invited to two parties on the same night. Which ones are my friends going to?</li>
+    <li>What will the girl/boy ratio be?</li>
   </ul>
   <h4><u>Evenn can answer all your questions!</u></h4>
   <strong>It allows you to:</strong>
