@@ -77,24 +77,27 @@ ev.controller('SelectEventsCtrl', [
       $scope.selectedEventCount = selectedEvents().length
 
     $scope.analyseEvents = ->
+      $scope.loadingMessage = "-*- START ANALYSIS -*-"
+      addLoadingLine = (l) -> $scope.loadingMessage += "\n#{l}"
       selectedEvents = selectedEvents().slice(0, $scope.maxSelection)
       return unless selectedEvents.length
-      $scope.loadingMessage = "Loading #{selectedEvents.length} events..."
+      addLoadingLine("Loading #{selectedEvents.length} events...")
       loadedCount = 0
 
       async.reduce(selectedEvents, {}, (memo, event, cb) ->
         memo[event.id] = new FbEvent(event, ->
           loadedCount += 1
-          $scope.loadingMessage = "Loaded #{loadedCount} of #{selectedEvents.length}"
+          addLoadingLine("Loaded #{loadedCount} of #{selectedEvents.length}")
           cb(null, memo)
         )
       , (err, events) ->
         $scope.user.events = events
         $scope.user.eventIds = Object.keys(events)
-        $scope.loadingMessage = "Event download complete. Getting gender data..."
+        addLoadingLine("Event download complete. Getting gender data...")
         UserStore.getAllGenders((users) ->
-          $scope.loadingMessage = "Genders done. Counting shit..."
+          addLoadingLine("Genders done. Counting shit...")
           _.forEach($scope.user.events, (e) -> e.generateAllEventStats())
+          addLoadingLine("-*- ANALYSIS COMPLETE -*-\nPlease wait...")
           $timeout( ->
             console.log($scope.user.events)
             label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
@@ -104,7 +107,7 @@ ev.controller('SelectEventsCtrl', [
             )
             $location.url('/')
             $scope.user.eventsReady = true
-          , 1000)
+          , 2000)
         )
       )
 ])

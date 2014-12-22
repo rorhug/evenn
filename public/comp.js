@@ -77,28 +77,33 @@ ev.controller('SelectEventsCtrl', [
       return $scope.selectedEventCount = selectedEvents().length;
     };
     return $scope.analyseEvents = function() {
-      var loadedCount;
+      var addLoadingLine, loadedCount;
+      $scope.loadingMessage = "-*- START ANALYSIS -*-";
+      addLoadingLine = function(l) {
+        return $scope.loadingMessage += "\n" + l;
+      };
       selectedEvents = selectedEvents().slice(0, $scope.maxSelection);
       if (!selectedEvents.length) {
         return;
       }
-      $scope.loadingMessage = "Loading " + selectedEvents.length + " events...";
+      addLoadingLine("Loading " + selectedEvents.length + " events...");
       loadedCount = 0;
       return async.reduce(selectedEvents, {}, function(memo, event, cb) {
         return memo[event.id] = new FbEvent(event, function() {
           loadedCount += 1;
-          $scope.loadingMessage = "Loaded " + loadedCount + " of " + selectedEvents.length;
+          addLoadingLine("Loaded " + loadedCount + " of " + selectedEvents.length);
           return cb(null, memo);
         });
       }, function(err, events) {
         $scope.user.events = events;
         $scope.user.eventIds = Object.keys(events);
-        $scope.loadingMessage = "Event download complete. Getting gender data...";
+        addLoadingLine("Event download complete. Getting gender data...");
         return UserStore.getAllGenders(function(users) {
-          $scope.loadingMessage = "Genders done. Counting shit...";
+          addLoadingLine("Genders done. Counting shit...");
           _.forEach($scope.user.events, function(e) {
             return e.generateAllEventStats();
           });
+          addLoadingLine("-*- ANALYSIS COMPLETE -*-\nPlease wait...");
           return $timeout(function() {
             var label;
             console.log($scope.user.events);
@@ -109,7 +114,7 @@ ev.controller('SelectEventsCtrl', [
             });
             $location.url('/');
             return $scope.user.eventsReady = true;
-          }, 1000);
+          }, 2000);
         });
       });
     };
@@ -150,7 +155,7 @@ ev.directive('genderRatio', [
       scope: {
         counts: "="
       },
-      template: "<span>\n  <span class=\"text-danger\">{{counts.ratio}} girls</span> to\n  <span class=\"text-info\">1 guy</span>\n</span>"
+      template: "<span>\n  <span class=\"text-danger\">{{counts.ratio}} {{counts.isFemaleToMale ? 'girls' : 'guys'}}</span> to\n  <span class=\"text-info\">1 {{counts.isFemaleToMale ? 'guy' : 'girl'}}</span>\n</span>"
     };
   }
 ]);
@@ -160,9 +165,10 @@ ev.directive('genderCounts', [
     return {
       restrict: 'AE',
       scope: {
-        counts: "="
+        counts: "=",
+        rsvp: "="
       },
-      template: "<span>\n  <span class=\"text-danger\">{{counts.f}} <i class=\"fa fa-female\"></i></span>\n  <span class=\"text-info\">{{counts.m}} <i class=\"fa fa-male\"></i></span>\n  <span ng-show=\"counts.n\">{{counts.n}} <i class=\"fa fa-user\"></i></span>\n</span>"
+      template: "<span>\n  <span class=\"text-danger\">{{counts[rsvp].f}} <i class=\"fa fa-female\"></i></span>\n  <span class=\"text-info\">{{counts[rsvp].m}} <i class=\"fa fa-male\"></i></span>\n  <span ng-show=\"counts[rsvp].n\" class=\"text-muted\">{{counts[rsvp].n}} <i class=\"fa fa-user\"></i></span>\n</span>"
     };
   }
 ]);

@@ -20,8 +20,8 @@ ev.directive('genderRatio', [->
     counts: "="
   template: """
     <span>
-      <span class="text-danger">{{counts.ratio}} girls</span> to
-      <span class="text-info">1 guy</span>
+      <span class="text-danger">{{counts.ratio}} {{counts.isFemaleToMale ? 'girls' : 'guys'}}</span> to
+      <span class="text-info">1 {{counts.isFemaleToMale ? 'guy' : 'girl'}}</span>
     </span>
   """
 ])
@@ -30,11 +30,12 @@ ev.directive('genderCounts', [->
   restrict: 'AE'
   scope:
     counts: "="
+    rsvp: "="
   template: """
     <span>
-      <span class="text-danger">{{counts.f}} <i class="fa fa-female"></i></span>
-      <span class="text-info">{{counts.m}} <i class="fa fa-male"></i></span>
-      <span ng-show="counts.n">{{counts.n}} <i class="fa fa-user"></i></span>
+      <span class="text-danger">{{counts[rsvp].f}} <i class="fa fa-female"></i></span>
+      <span class="text-info">{{counts[rsvp].m}} <i class="fa fa-male"></i></span>
+      <span ng-show="counts[rsvp].n" class="text-muted">{{counts[rsvp].n}} <i class="fa fa-user"></i></span>
     </span>
   """
 ])

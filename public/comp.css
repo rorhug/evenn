@@ -34,8 +34,8 @@ input[type=search] {
   #start-screen h1 {
     margin-top: 90px; }
 
-.thumbnail.event-card .well-lg {
-  margin-bottom: 5px; }
+.thumbnail.event-card .well {
+  margin-bottom: 0; }
 .thumbnail.event-card h3 {
   margin-top: 0; }
 .thumbnail.event-card .event-details {
