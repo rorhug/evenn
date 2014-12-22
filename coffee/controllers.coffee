@@ -53,6 +53,8 @@ ev.controller('SelectEventsCtrl', [
   'FbEvent'
   'UserStore'
   ($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) ->
+    $scope.user.events = null
+    $scope.user.eventIds = null
     async.reduce(['attending', 'not_replied', 'maybe', 'declined'], [], (memo, status, cb) ->
       Facebook.api("/me/events/#{status}",
         limit: 50
@@ -89,16 +91,21 @@ ev.controller('SelectEventsCtrl', [
       , (err, events) ->
         $scope.user.events = events
         $scope.user.eventIds = Object.keys(events)
-        $scope.loadingMessage = "Event download complete. Please wait..."
-        $timeout( ->
-          label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
-          $analytics.eventTrack('analyse',
-            category: 'interesting'
-            label: label
-          )
-          $location.url('/')
-          $scope.user.eventsReady = true
-        , 1000)
+        $scope.loadingMessage = "Event download complete. Getting gender data..."
+        UserStore.getAllGenders((users) ->
+          $scope.loadingMessage = "Genders done. Counting shit..."
+          _.forEach($scope.user.events, (e) -> e.generateAllEventStats())
+          $timeout( ->
+            console.log($scope.user.events)
+            label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
+            $analytics.eventTrack('analyse',
+              category: 'interesting'
+              label: label
+            )
+            $location.url('/')
+            $scope.user.eventsReady = true
+          , 1000)
+        )
       )
 ])
 
@@ -125,7 +132,4 @@ ev.controller('GenderRatioIndexCtrl', [
   '$scope'
   'UserStore'
   ($scope, UserStore) ->
-    UserStore.getAllGenders((users) ->
-      $scope.gendersLoaded = true
-    )
 ])

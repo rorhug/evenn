@@ -58,11 +58,11 @@
             <li data-match-route="/table$">
               <a bs-collapse-toggle href="#/table"><i class="fa fa-list"></i> Big List</a>
             </li>
-            <li data-match-route="/venn$">
-              <a bs-collapse-toggle href="#/venn"><i class="fa fa-dot-circle-o"></i> Venn Diagram</a>
-            </li>
             <li data-match-route="/genders$">
               <a bs-collapse-toggle href="#/genders"><i class="fa fa-users"></i> Gender Ratios</a>
+            </li>
+            <li data-match-route="/venn$">
+              <a bs-collapse-toggle href="#/venn"><i class="fa fa-dot-circle-o"></i> Venn Diagram</a>
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right" ng-show="user.fb">
@@ -134,31 +134,48 @@
   <h4>Selected Events:</h4>
   <div class="row">
     <div class="col-sm-6 col-md-4" ng-repeat="(id, event) in user.events">
-      <div class="thumbnail">
-        <img ng-src="{{event.cover.source}}" ng-if="event.cover">
-        <div class="well well-lg" ng-hide="event.cover">No cover photo :(</div>
-        <div class="caption">
-          <h3 ng-bind="event.name"></h3>
-          <dl>
-            <dt>Created by</dt>
-            <dd ng-bind="event.owner.name"></dd>
-            <dt>Location</dt>
-            <dd ng-bind="event.location"></dd>
-            <dt>Time</dt>
-            <dd ng-bind="event.start_time | date : 'yyyy-MM-dd HH:mm'"></dd>
-            <dt>Description</dt>
-            <dd>
-              <span ng-hide="event._showDescription"><span ng-bind="event.description | limitTo : 100"></span>...</span>
-              <span class="preformatted" ng-if="event._showDescription" ng-bind="event.description"></span>
-              <a ng-if="event.description.length > 100" ng-click="event._showDescription = !event._showDescription" ng-bind="event._showDescription ? 'Show Less' : 'Show More'"></a>
-            </dd>
-          </dl>
-          <p>
-            <a class="btn btn-default btn-sm" ng-href="#/table?highlight={{id}}">Show in big list</a>
-            <a class="btn btn-default btn-sm">Gender Ratio</a>
-          </p>
-        </div>
-      </div>
+      <event-card event="event"></event-card>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="event-card.html">
+  <div class="thumbnail event-card">
+    <img ng-src="{{event.cover.source}}" ng-if="event.cover">
+    <div class="well well-sm" ng-hide="event.cover">
+      <small class="text-muted">No cover photo :(</small>
+    </div>
+    <div class="caption">
+      <h3 ng-bind="event.name"></h3>
+      <p>
+        <a class="btn btn-default btn-sm" ng-href="#/table?highlight={{event.id}}"><i class="fa fa-list"></i> Show in Big List</a>
+        <a class="btn btn-default btn-sm"><i class="fa fa-users"></i> Gender Ratio</a>
+      </p>
+      <p class="event-details">
+        <strong>Created by</strong>
+        <span ng-bind="event.owner.name"></span>
+        <br>
+        <strong>Location</strong>
+        <span ng-bind="event.location"></span>
+        <br>
+        <strong>Time</strong>
+        <span ng-bind="event.start_time | date : 'yyyy-MM-dd HH:mm'"></span>
+        <br>
+        <strong>Description</strong>
+        <br>
+        <span>
+          <span ng-hide="event._showDescription"><span ng-bind="event.description | limitTo : 100"></span>...</span>
+          <span class="preformatted" ng-if="event._showDescription" ng-bind="event.description"></span>
+          <a ng-if="event.description.length > 100" ng-click="event._showDescription = !event._showDescription" ng-bind="event._showDescription ? 'Show Less' : 'Show More'"></a>
+        </span>
+        <ul class="list-inline">
+          <li><strong ng-bind="event.invitedCount"></strong> Total invited</li>
+          <li ng-repeat="rsvp in event.rsvpTypes">
+            <strong ng-bind="event[rsvp + 'Count']"></strong>
+            <span ng-bind="$root.rsvpMeta.words[rsvp]"></span>
+          </li>
+        </ul>
+      </p>
     </div>
   </div>
 </script>
@@ -186,7 +203,7 @@
           </h4>
           <p class="list-group-item-text">
             <small>{{event.location}}, {{event.start_time| date : 'yyyy-MM-dd HH:mm'}}</small>
-            <gender-counts counts="event.genderCounts()"></gender-counts>
+            <!-- <gender-counts counts="event.genderCounts()"></gender-counts> -->
           </p>
         </a>
       </div>
@@ -198,7 +215,7 @@
           <h4 class="panel-title">How this works</h4>
         </div>
         <div class="panel-body">
-          Facebook unfortunately doesn't give access to gender information freely via their API so I've had to come up with a compromise. It uses a service called <a href="http://genderize.io/">genderize.io</a> which figures out gender using first names. Obviously unisex names exist and so won't appear in the ratio. This should give a good indication though.
+          Facebook unfortunately doesn't give access to gender information freely via their API so I've had to come up with a compromise. It <a href="https://github.com/bmuller/gender_detector/">guesses the gender</a> of people based on first name. Obviously unisex names exist so they won't appear in the ratio but it should give a good indication.
         </div>
       </div>
     </div>
@@ -231,7 +248,7 @@
             <span ng-bind="person.name"></span>
           </a>
         </td>
-        <td st-ratio="{{columnWidth}}" ng-repeat="id in eventIds" ng-class="rsvpMeta.colors[person.events[id]]" ng-bind="rsvpMeta.words[person.events[id]]"></td>
+        <td st-ratio="{{columnWidth}}" ng-repeat="id in eventIds" ng-class="$root.rsvpMeta.colors[person.events[id]]" ng-bind="$root.rsvpMeta.words[person.events[id]]"></td>
       </tr>
     </tbody>
   </table>
@@ -255,6 +272,11 @@
     <li><strong class="text-muted">(Coming Soon!)</strong> Rank events in terms of gender ratio!</li>
   </ul>
 </script>
+
+<script src="/bower_components/d3/d3.js"></script>
+<script src="/bower_components/nvd3/nv.d3.min.js"></script>
+<script src="/bower_components/angular-nvd3/dist/angular-nvd3.min.js"></script>
+<link rel="stylesheet" href="/bower_components/nvd3/nv.d3.css">
 
 </body>
 </html>

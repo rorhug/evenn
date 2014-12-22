@@ -1,6 +1,6 @@
 var ev;
 
-ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics']);
+ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics', 'nvd3']);
 
 var ev;
 
@@ -9,7 +9,6 @@ ev = angular.module('evenn');
 ev.controller('MainCtrl', [
   '$window', '$scope', '$http', '$location', 'Facebook', function($window, $scope, $http, $location, Facebook) {
     $scope.goBack = function() {
-      console.log('back');
       return $window.history.back();
     };
     return $scope.logout = function() {
@@ -53,6 +52,8 @@ ev.controller('LoginCtrl', [
 ev.controller('SelectEventsCtrl', [
   '$scope', '$location', '$timeout', '$analytics', 'Facebook', 'FbEvent', 'UserStore', function($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) {
     var selectedEvents;
+    $scope.user.events = null;
+    $scope.user.eventIds = null;
     async.reduce(['attending', 'not_replied', 'maybe', 'declined'], [], function(memo, status, cb) {
       return Facebook.api("/me/events/" + status, {
         limit: 50,
@@ -92,17 +93,24 @@ ev.controller('SelectEventsCtrl', [
       }, function(err, events) {
         $scope.user.events = events;
         $scope.user.eventIds = Object.keys(events);
-        $scope.loadingMessage = "Event download complete. Please wait...";
-        return $timeout(function() {
-          var label;
-          label = "" + $scope.user.eventIds.length + "e" + (_.size(UserStore.users)) + "u";
-          $analytics.eventTrack('analyse', {
-            category: 'interesting',
-            label: label
+        $scope.loadingMessage = "Event download complete. Getting gender data...";
+        return UserStore.getAllGenders(function(users) {
+          $scope.loadingMessage = "Genders done. Counting shit...";
+          _.forEach($scope.user.events, function(e) {
+            return e.generateAllEventStats();
           });
-          $location.url('/');
-          return $scope.user.eventsReady = true;
-        }, 1000);
+          return $timeout(function() {
+            var label;
+            console.log($scope.user.events);
+            label = "" + $scope.user.eventIds.length + "e" + (_.size(UserStore.users)) + "u";
+            $analytics.eventTrack('analyse', {
+              category: 'interesting',
+              label: label
+            });
+            $location.url('/');
+            return $scope.user.eventsReady = true;
+          }, 1000);
+        });
       });
     };
   }
@@ -119,13 +127,7 @@ ev.controller('TableCtrl', [
 
 ev.controller('VennCtrl', ['$scope', function($scope) {}]);
 
-ev.controller('GenderRatioIndexCtrl', [
-  '$scope', 'UserStore', function($scope, UserStore) {
-    return UserStore.getAllGenders(function(users) {
-      return $scope.gendersLoaded = true;
-    });
-  }
-]);
+ev.controller('GenderRatioIndexCtrl', ['$scope', 'UserStore', function($scope, UserStore) {}]);
 
 var ev;
 
@@ -185,28 +187,7 @@ ev.directive('aboutEvenn', function() {
 });
 
 ev.directive('attendeeTable', [
-  function() {
-    var rsvpMeta, rsvpStatuses;
-    rsvpMeta = {
-      colors: {
-        attending: 'success',
-        declined: 'danger',
-        unsure: 'warning',
-        not_replied: 'active'
-      },
-      words: {
-        attending: 'Going',
-        declined: 'Declined',
-        unsure: 'Maybe',
-        not_replied: 'Invited'
-      }
-    };
-    rsvpStatuses = {
-      attending: 16,
-      unsure: 15,
-      declined: 14,
-      not_replied: 9
-    };
+  '$rootScope', function($rootScope) {
     return {
       scope: {
         attendees: '=',
@@ -218,14 +199,13 @@ ev.directive('attendeeTable', [
         scope.eventIds = Object.keys(scope.events);
         scope.tableHeight = window.innerHeight ? "" + (window.innerHeight - 40) + "px" : '350px';
         scope.columnWidth = (80 / scope.eventIds.length) - 0.1;
-        scope.rsvpMeta = rsvpMeta;
         return scope.getScore = function(attendee) {
           if (attendee.score) {
             return attendee.score;
           }
           return attendee.score = _.reduce(scope.eventIds, function(result, eventId, index) {
             var i, rsvpScore;
-            rsvpScore = rsvpStatuses[attendee.events[eventId]];
+            rsvpScore = $rootScope.rsvpMeta.points[attendee.events[eventId]];
             if (rsvpScore) {
               i = Math.pow(index + 2, 2);
               return result + 10000 + (i * 100) + (rsvpScore * i);
@@ -238,6 +218,15 @@ ev.directive('attendeeTable', [
     };
   }
 ]);
+
+ev.directive('eventCard', function() {
+  return {
+    templateUrl: 'event-card.html',
+    scope: {
+      event: '='
+    }
+  };
+});
 
 var ev;
 
@@ -299,6 +288,26 @@ ev.config([
 ev.run([
   '$rootScope', '$location', '$route', '$timeout', 'Facebook', function($rootScope, $location, $route, $timeout, Facebook) {
     var delayedLoad, noAuthRoutes;
+    $rootScope.rsvpMeta = {
+      colors: {
+        attending: 'success',
+        unsure: 'warning',
+        declined: 'danger',
+        not_replied: 'active'
+      },
+      words: {
+        attending: 'Going',
+        unsure: 'Maybe',
+        declined: 'Declined',
+        not_replied: 'Not replied'
+      },
+      points: {
+        attending: 16,
+        unsure: 15,
+        declined: 14,
+        not_replied: 9
+      }
+    };
     $rootScope.user = {};
     $rootScope.location = $location;
     noAuthRoutes = ['/login', '/about'];
@@ -310,7 +319,6 @@ ev.run([
     return $rootScope.$on('$locationChangeStart', function(e, next, current) {
       var url;
       url = $location.url();
-      console.log(next);
       if (_.contains(noAuthRoutes, url)) {
         delayedLoad();
       } else if ($rootScope.user.fb) {
@@ -321,7 +329,6 @@ ev.run([
       } else {
         e.preventDefault();
         return Facebook.getLoginStatus(function(response) {
-          console.log('login status');
           if (response.status === 'connected') {
             return Facebook.api('/me', function(response) {
               $rootScope.user.fb = response;
@@ -442,6 +449,7 @@ ev.service('FbEvent', [
     return FbEvent = (function() {
       function FbEvent(fbObj, cb) {
         var self;
+        this.rsvpTypes = ['attending', 'declined', 'unsure', 'not_replied'];
         self = this;
         Facebook.api("/" + fbObj.id, {
           fields: 'id,description,location,name,owner,privacy,start_time,timezone,updated_time,venue,cover'
@@ -450,33 +458,63 @@ ev.service('FbEvent', [
           self.invited = [];
           return Facebook.api("/" + self.id + "/invited", {
             fields: 'id,first_name,name,link,picture,rsvp_status,gender',
-            limit: 1000
+            limit: 5000
           }, function(res) {
             self.invited = _.map(res.data, function(userObj) {
               return UserStore.addUserObjByEvent(self.id, userObj);
             });
+            self.invitedCount = self.invited.length;
             return cb(self);
           });
         });
       }
 
-      FbEvent.prototype.going = function() {
+      FbEvent.prototype._usersWithRsvp = function(rsvp) {
         var self;
-        if (this._going) {
-          return this._going;
-        }
         self = this;
-        return this._going = _.filter(this.invited, function(user) {
-          return user.events[self.id] === 'attending';
+        return _.filter(this.invited, function(user) {
+          return user.events[self.id] === rsvp;
         });
       };
 
-      FbEvent.prototype.genderCounts = function() {
-        if (this._counts) {
-          return this._counts;
+      FbEvent.prototype._addRsvpGroups = function() {
+        var self;
+        self = this;
+        return _.forEach(this.rsvpTypes, function(rsvp) {
+          self[rsvp] = self._usersWithRsvp(rsvp);
+          return self[rsvp + 'Count'] = self[rsvp].length;
+        });
+      };
+
+      FbEvent.prototype._genderCountsFor = function(list) {
+        var gc;
+        gc = {
+          f: 0,
+          m: 0,
+          n: 0
+        };
+        _.assign(gc, _.countBy(list, 'gender'));
+        gc.isFemaleToMale = gc.f >= gc.m;
+        if (gc.f === 0 || gc.m === 0) {
+          gc.ratio = 0;
+        } else {
+          gc.ratio = gc.f / gc.m;
+          if (!gc.isFemaleToMale) {
+            gc.ratio = 1 / gc.ratio;
+          }
+          gc.ratio = Math.round(gc.ratio * 100) / 100;
         }
-        this._counts = _.countBy(this.invited, 'gender');
-        return this._counts.ratio = Math.round(this._counts.f / this._counts.m * 100) / 100;
+        return gc;
+      };
+
+      FbEvent.prototype.generateAllEventStats = function() {
+        var self;
+        self = this;
+        this._addRsvpGroups();
+        return this.genderCounts = _.reduce(['invited', 'attending'], function(memo, rsvp) {
+          memo[rsvp] = self._genderCountsFor(self[rsvp]);
+          return memo;
+        }, {});
       };
 
       return FbEvent;

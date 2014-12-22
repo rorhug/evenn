@@ -70,6 +70,23 @@ ev.run([
   '$timeout'
   'Facebook'
   ($rootScope, $location, $route, $timeout, Facebook) ->
+    $rootScope.rsvpMeta =
+      colors:
+        attending: 'success'
+        unsure: 'warning'
+        declined: 'danger'
+        not_replied: 'active'
+      words:
+        attending: 'Going'
+        unsure: 'Maybe'
+        declined: 'Declined'
+        not_replied: 'Not replied'
+      points:
+        attending: 16
+        unsure: 15
+        declined: 14
+        not_replied: 9
+
     $rootScope.user = {}
     $rootScope.location = $location
     noAuthRoutes = ['/login', '/about']

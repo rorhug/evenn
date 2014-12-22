@@ -64,6 +64,7 @@ ev.service('FbEvent', [
   (Facebook, UserStore) ->
     class FbEvent
       constructor: (fbObj, cb) ->
+        @rsvpTypes = ['attending', 'declined', 'unsure', 'not_replied']
         self = @
         Facebook.api("/#{fbObj.id}", # Get more detailed event info
           fields: 'id,description,location,name,owner,privacy,start_time,timezone,updated_time,venue,cover'
@@ -72,24 +73,48 @@ ev.service('FbEvent', [
           self.invited = []
           Facebook.api("/#{self.id}/invited",
             fields: 'id,first_name,name,link,picture,rsvp_status,gender'
-            limit: 1000
+            limit: 5000
           , (res) ->
             self.invited = _.map(res.data, (userObj) ->
               UserStore.addUserObjByEvent(self.id, userObj)
             )
+            self.invitedCount = self.invited.length
             cb(self)
           )
         )
 
-      going: ->
-        return @_going if @_going
+      _usersWithRsvp: (rsvp) ->
         self = @
-        @_going = _.filter(@invited, (user) ->
-          user.events[self.id] is 'attending'
+        _.filter(@invited, (user) ->
+          user.events[self.id] is rsvp
         )
 
-      genderCounts: ->
-        return @_counts if @_counts
-        @_counts = _.countBy(@invited, 'gender')
-        @_counts.ratio = Math.round(@_counts.f/@_counts.m * 100)/100
+      _addRsvpGroups: ->
+        self = @
+        _.forEach(@rsvpTypes, (rsvp) ->
+          self[rsvp] = self._usersWithRsvp(rsvp)
+          self[rsvp + 'Count'] = self[rsvp].length
+        )
+
+      _genderCountsFor: (list) ->
+        # gender count
+        gc = {f: 0, m: 0, n: 0}
+        _.assign(gc, _.countBy(list, 'gender'))
+        gc.isFemaleToMale = gc.f >= gc.m
+        if gc.f is 0 or gc.m is 0
+          gc.ratio = 0
+        else
+          gc.ratio = gc.f/gc.m
+          gc.ratio = 1/gc.ratio unless gc.isFemaleToMale
+          gc.ratio = Math.round(gc.ratio * 100)/100
+        gc
+
+      generateAllEventStats: ->
+        self = @
+        @_addRsvpGroups()
+        @genderCounts = _.reduce(['invited', 'attending'], (memo, rsvp) ->
+          memo[rsvp] = self._genderCountsFor(self[rsvp])
+          memo
+        , {})
+
 ])

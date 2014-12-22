@@ -24,6 +24,7 @@
     "lodash": "*",
     "async": "*",
     "angular-smart-table": "*",
-    "d3": "*"
+    "d3": "*",
+    "angular-nvd3": "*"
   }
 }

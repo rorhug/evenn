@@ -6,4 +6,5 @@ ev = angular.module('evenn', [
   'smart-table'
   'angulartics'
   'angulartics.google.analytics'
+  'nvd3'
 ])

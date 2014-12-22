@@ -46,12 +46,15 @@ input[type=search] {
   }
 }
 
-.thumbnail {
+.thumbnail.event-card {
   .well-lg {
     margin-bottom: 5px;
   }
   h3 {
     margin-top: 0;
+  }
+  .event-details {
+    font-size: 12px;
   }
 }
 

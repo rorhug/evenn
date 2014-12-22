@@ -51,41 +51,24 @@ ev.directive('aboutEvenn', ->
 )
 
 ev.directive('attendeeTable', [
-  ->
-    rsvpMeta =
-      colors:
-        attending: 'success'
-        declined: 'danger'
-        unsure: 'warning'
-        not_replied: 'active'
-      words:
-        attending: 'Going'
-        declined: 'Declined'
-        unsure: 'Maybe'
-        not_replied: 'Invited'
-    rsvpStatuses =
-      attending: 16
-      unsure: 15
-      declined: 14
-      not_replied: 9
-
+  '$rootScope'
+  ($rootScope) ->
     scope:
       attendees: '='
       highlightId: '='
       events: '='
-
     templateUrl: 'attendee-table.html'
     link: (scope, element, attr) ->
       scope.eventIds = Object.keys(scope.events)
       scope.tableHeight = if window.innerHeight then "#{window.innerHeight - 40}px" else '350px'
       scope.columnWidth = (80 / scope.eventIds.length) - 0.1
-      scope.rsvpMeta = rsvpMeta
+      # scope.rsvpMeta = rsvpMeta
 
       scope.getScore = (attendee) ->
         return attendee.score if attendee.score
         attendee.score = _.reduce(scope.eventIds,
         (result, eventId, index) ->
-          rsvpScore = rsvpStatuses[attendee.events[eventId]]
+          rsvpScore = $rootScope.rsvpMeta.points[attendee.events[eventId]]
           if rsvpScore
             i = Math.pow((index+2), 2)
             result + 10000 + (i*100) + (rsvpScore*i)
@@ -93,3 +76,9 @@ ev.directive('attendeeTable', [
             result
         , 0)
 ])
+
+ev.directive('eventCard', ->
+  templateUrl: 'event-card.html'
+  scope:
+    event: '='
+)
