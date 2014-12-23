@@ -1,5 +1,5 @@
 body {
-  padding-top: 70px; }
+  padding-top: 60px; }
 
 input[type=search] {
   -webkit-appearance: none; }
@@ -44,7 +44,7 @@ input[type=search] {
   #start-screen.fade-out-add {
     display: block; }
   #start-screen h1 {
-    margin-top: 90px; }
+    margin-top: 80px; }
 
 .thumbnail.event-card .well {
   margin-bottom: 0; }

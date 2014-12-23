@@ -64,8 +64,8 @@ ev.directive('genderRatioPie', [
         <canvas ng-if="chartData.length" class="chart chart-doughnut"
           data="chartData" labels="labels" colours="colours"></canvas>
         <div class="btn-group text-center" ng-model="selectedRsvpType" bs-radio-group>
-          <label class="btn btn-default btn-sm"><input type="radio" value="attending">Going</label>
-          <label class="btn btn-default btn-sm"><input type="radio" value="invited">All invited</label>
+          <label class="btn btn-default"><input type="radio" value="attending">Going</label>
+          <label class="btn btn-default"><input type="radio" value="invited">All invited</label>
         </div>
       </div>
     """
@@ -132,7 +132,7 @@ ev.directive('attendeeTable', [
     templateUrl: 'attendee-table.html'
     link: (scope, element, attr) ->
       scope.eventIds = Object.keys(scope.events)
-      scope.tableHeight = if window.innerHeight then "#{window.innerHeight - 40}px" else '350px'
+      scope.tableHeight = if window.innerHeight then "#{window.innerHeight - 80}px" else '350px'
       scope.columnWidth = (80 / scope.eventIds.length) - 0.1
       # scope.rsvpMeta = rsvpMeta
 

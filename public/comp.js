@@ -205,7 +205,7 @@ ev.directive('genderCounts', [
 ev.directive('genderRatioPie', [
   '$timeout', function($timeout) {
     return {
-      template: "<div class=\"ratio-chart\">\n  <h3 class=\"text-center\">\n    <gender-ratio counts=\"counts[selectedRsvpType]\"></gender-ratio>\n  </h3>\n  <p ng-hide=\"chartData.length\" class=\"text-center\">Loading chart...</p>\n  <canvas ng-if=\"chartData.length\" class=\"chart chart-doughnut\"\n    data=\"chartData\" labels=\"labels\" colours=\"colours\"></canvas>\n  <div class=\"btn-group text-center\" ng-model=\"selectedRsvpType\" bs-radio-group>\n    <label class=\"btn btn-default btn-sm\"><input type=\"radio\" value=\"attending\">Going</label>\n    <label class=\"btn btn-default btn-sm\"><input type=\"radio\" value=\"invited\">All invited</label>\n  </div>\n</div>",
+      template: "<div class=\"ratio-chart\">\n  <h3 class=\"text-center\">\n    <gender-ratio counts=\"counts[selectedRsvpType]\"></gender-ratio>\n  </h3>\n  <p ng-hide=\"chartData.length\" class=\"text-center\">Loading chart...</p>\n  <canvas ng-if=\"chartData.length\" class=\"chart chart-doughnut\"\n    data=\"chartData\" labels=\"labels\" colours=\"colours\"></canvas>\n  <div class=\"btn-group text-center\" ng-model=\"selectedRsvpType\" bs-radio-group>\n    <label class=\"btn btn-default\"><input type=\"radio\" value=\"attending\">Going</label>\n    <label class=\"btn btn-default\"><input type=\"radio\" value=\"invited\">All invited</label>\n  </div>\n</div>",
       scope: {
         counts: '='
       },
@@ -286,7 +286,7 @@ ev.directive('attendeeTable', [
       templateUrl: 'attendee-table.html',
       link: function(scope, element, attr) {
         scope.eventIds = Object.keys(scope.events);
-        scope.tableHeight = window.innerHeight ? "" + (window.innerHeight - 40) + "px" : '350px';
+        scope.tableHeight = window.innerHeight ? "" + (window.innerHeight - 80) + "px" : '350px';
         scope.columnWidth = (80 / scope.eventIds.length) - 0.1;
         return scope.getScore = function(attendee) {
           if (attendee.score) {
