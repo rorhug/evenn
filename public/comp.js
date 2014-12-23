@@ -2,7 +2,7 @@ var ev;
 
 Chart.defaults.global.responsive = true;
 
-ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics', 'chart.js']);
+ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics', 'ngIntercom', 'chart.js']);
 
 var ev;
 
@@ -312,7 +312,7 @@ var ev;
 ev = angular.module('evenn');
 
 ev.config([
-  '$routeProvider', '$tooltipProvider', '$modalProvider', '$popoverProvider', '$dropdownProvider', '$httpProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $httpProvider, FacebookProvider) {
+  '$routeProvider', '$tooltipProvider', '$dropdownProvider', '$httpProvider', '$intercomProvider', 'FacebookProvider', function($routeProvider, $tooltipProvider, $dropdownProvider, $httpProvider, $intercomProvider, FacebookProvider) {
     $routeProvider.when('/', {
       templateUrl: 'events-home.html',
       controller: 'EventsHomeCtrl'
@@ -342,14 +342,6 @@ ev.config([
       placement: 'bottom',
       container: 'body'
     });
-    angular.extend($modalProvider.defaults, {
-      container: 'body',
-      backdropAnimation: null
-    });
-    angular.extend($popoverProvider.defaults, {
-      container: 'body',
-      animation: null
-    });
     angular.extend($dropdownProvider.defaults, {
       animation: null
     });
@@ -357,6 +349,10 @@ ev.config([
       appId: '316035781927497',
       version: 'v2.2'
     });
+    if (!window.evennIsLocalhost) {
+      $intercomProvider.appID('as2avokq');
+      $intercomProvider.asyncLoading(true);
+    }
     $httpProvider.defaults.headers.common = {};
     $httpProvider.defaults.headers.post = {};
     $httpProvider.defaults.headers.put = {};
@@ -365,7 +361,7 @@ ev.config([
 ]);
 
 ev.run([
-  '$rootScope', '$location', '$route', '$timeout', 'Facebook', function($rootScope, $location, $route, $timeout, Facebook) {
+  '$rootScope', '$location', '$route', '$timeout', '$intercom', 'Facebook', function($rootScope, $location, $route, $timeout, $intercom, Facebook) {
     var delayedLoad, noAuthRoutes;
     $rootScope.rsvpMeta = {
       colors: {
@@ -415,13 +411,22 @@ ev.run([
     };
     $rootScope.loadMe = function(cb) {
       return Facebook.api('/me', {
-        fields: 'id,email,name,first_name,gender,timezone,link'
+        fields: 'id,email,name,first_name,gender,timezone,link,picture'
       }, function(res) {
         $rootScope.user.fb = res;
+        if (!window.evennIsLocalhost) {
+          $intercom.boot({
+            user_id: res.id,
+            email: res.email,
+            name: res.name,
+            gender: res.gender,
+            link: res.link
+          });
+        }
         return cb();
       });
     };
-    return $rootScope.$on('$locationChangeStart', function(e, next, current) {
+    $rootScope.$on('$locationChangeStart', function(e, next, current) {
       var url;
       url = $location.url();
       if (_.contains(noAuthRoutes, url)) {
@@ -448,6 +453,11 @@ ev.run([
         });
       }
     });
+    if (!window.evennIsLocalhost) {
+      return $rootScope.$on('$locationChangeSuccess', function(e, next, current) {
+        return $intercom.update();
+      });
+    }
   }
 ]);
 
@@ -490,7 +500,6 @@ ev.service('UserStore', [
         this.id = fbObj.id;
         this.name = fbObj.name;
         this.first_name = fbObj.first_name;
-        this.email = fbObj.email;
         this.link = fbObj.link;
         this.picture_url = fbObj.picture.data.url;
         this.events = {};

@@ -3,12 +3,11 @@ ev = angular.module('evenn')
 ev.config([
   '$routeProvider'
   '$tooltipProvider'
-  '$modalProvider'
-  '$popoverProvider'
   '$dropdownProvider'
   '$httpProvider'
+  '$intercomProvider'
   'FacebookProvider'
-  ($routeProvider, $tooltipProvider, $modalProvider, $popoverProvider, $dropdownProvider, $httpProvider, FacebookProvider) ->
+  ($routeProvider, $tooltipProvider, $dropdownProvider, $httpProvider, $intercomProvider, FacebookProvider) ->
     $routeProvider.when('/',
       templateUrl: 'events-home.html'
       controller: 'EventsHomeCtrl'
@@ -40,15 +39,6 @@ ev.config([
       placement: 'bottom'
       container: 'body'
 
-    angular.extend $modalProvider.defaults,
-      container: 'body'
-      # animation: null
-      backdropAnimation: null
-
-    angular.extend $popoverProvider.defaults,
-      container: 'body'
-      animation: null
-
     angular.extend $dropdownProvider.defaults,
       animation: null
 
@@ -56,6 +46,10 @@ ev.config([
       appId: '316035781927497'
       version: 'v2.2'
     )
+
+    unless window.evennIsLocalhost
+      $intercomProvider.appID('as2avokq')
+      $intercomProvider.asyncLoading(true)
 
     $httpProvider.defaults.headers.common = {}
     $httpProvider.defaults.headers.post = {}
@@ -68,8 +62,9 @@ ev.run([
   '$location'
   '$route'
   '$timeout'
+  '$intercom'
   'Facebook'
-  ($rootScope, $location, $route, $timeout, Facebook) ->
+  ($rootScope, $location, $route, $timeout, $intercom, Facebook) ->
     $rootScope.rsvpMeta =
       colors:
         attending: 'success'
@@ -108,9 +103,17 @@ ev.run([
     delayedLoad = -> $timeout((-> $rootScope.evennLoaded = true), 1000)
     $rootScope.loadMe = (cb) ->
       Facebook.api('/me',
-        fields: 'id,email,name,first_name,gender,timezone,link'
+        fields: 'id,email,name,first_name,gender,timezone,link,picture'
       , (res) ->
         $rootScope.user.fb = res
+        unless window.evennIsLocalhost
+          $intercom.boot(
+            user_id: res.id
+            email: res.email
+            name: res.name
+            gender: res.gender
+            link: res.link
+          )
         cb()
       )
     
@@ -135,8 +138,11 @@ ev.run([
             $location.url('/login')
             $route.reload()
             delayedLoad()
-
     )
+    unless window.evennIsLocalhost
+      $rootScope.$on('$locationChangeSuccess', (e, next, current) ->
+        $intercom.update()
+      )
 ])
 
 ev.filter('cap', ->

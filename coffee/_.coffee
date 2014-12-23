@@ -8,5 +8,6 @@ ev = angular.module('evenn', [
   'smart-table'
   'angulartics'
   'angulartics.google.analytics'
+  'ngIntercom'
   'chart.js'
 ])
