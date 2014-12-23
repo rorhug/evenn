@@ -59,7 +59,7 @@ ev.controller('LoginCtrl', [
 ]);
 
 ev.controller('SelectEventsCtrl', [
-  '$scope', '$location', '$timeout', '$analytics', 'Facebook', 'FbEvent', 'UserStore', function($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) {
+  '$scope', '$location', '$timeout', '$analytics', '$intercom', 'Facebook', 'FbEvent', 'UserStore', function($scope, $location, $timeout, $analytics, $intercom, Facebook, FbEvent, UserStore) {
     var selectedEvents;
     $scope.user.events = null;
     $scope.user.eventIds = null;
@@ -72,9 +72,8 @@ ev.controller('SelectEventsCtrl', [
       });
     }, function(err, events) {
       $scope.availableEvents = events;
-      return $analytics.eventTrack('events_select_length', {
-        category: 'interesting',
-        label: "" + events.length
+      return $intercom.trackEvent('events_select_length', {
+        event_count: events.length
       });
     });
     $scope.maxSelection = 5;
@@ -114,11 +113,9 @@ ev.controller('SelectEventsCtrl', [
           });
           addLoadingLine("-*- ANALYSIS COMPLETE -*-\nPlease wait...");
           return $timeout(function() {
-            var label;
-            label = "" + $scope.user.eventIds.length + "e" + (_.size(UserStore.users)) + "u";
-            $analytics.eventTrack('analyse', {
-              category: 'interesting',
-              label: label
+            $intercom.trackEvent('analyse', {
+              event_count: $scope.user.eventIds.length,
+              total_facebook_users: UserStore.users
             });
             $location.url('/');
             return $scope.user.eventsReady = true;
@@ -140,11 +137,22 @@ ev.controller('TableCtrl', [
 
 ev.controller('VennCtrl', ['$scope', function($scope) {}]);
 
-ev.controller('GenderRatioIndexCtrl', ['$scope', 'UserStore', function($scope, UserStore) {}]);
+ev.controller('GenderRatioIndexCtrl', [
+  '$scope', 'UserStore', function($scope, UserStore, $intercom) {
+    return $intercom.trackEvent('view_gender_ratio_index', {
+      event_count: $scope.user.eventIds.length
+    });
+  }
+]);
 
 ev.controller('GenderRatioShowCtrl', [
   '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
-    return $scope.event = $scope.user.events[$routeParams.id];
+    $scope.event = $scope.user.events[$routeParams.id];
+    return $intercom.trackEvent('view_gender_ratio_show', {
+      female_invited_count: $scope.event.genderCounts.invited.f,
+      male_invited_count: $scope.event.genderCounts.invited.m,
+      neutral_invited_count: $scope.event.genderCounts.invited.n
+    });
   }
 ]);
 
@@ -453,11 +461,9 @@ ev.run([
         });
       }
     });
-    if (!window.evennIsLocalhost) {
-      return $rootScope.$on('$locationChangeSuccess', function(e, next, current) {
-        return $intercom.update();
-      });
-    }
+    return $rootScope.$on('$locationChangeSuccess', function(e, next, current) {
+      return $intercom.update();
+    });
   }
 ]);
 

@@ -139,10 +139,9 @@ ev.run([
             $route.reload()
             delayedLoad()
     )
-    unless window.evennIsLocalhost
-      $rootScope.$on('$locationChangeSuccess', (e, next, current) ->
-        $intercom.update()
-      )
+    $rootScope.$on('$locationChangeSuccess', (e, next, current) ->
+      $intercom.update()
+    )
 ])
 
 ev.filter('cap', ->

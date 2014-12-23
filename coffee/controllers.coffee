@@ -52,10 +52,11 @@ ev.controller('SelectEventsCtrl', [
   '$location'
   '$timeout'
   '$analytics'
+  '$intercom'
   'Facebook'
   'FbEvent'
   'UserStore'
-  ($scope, $location, $timeout, $analytics, Facebook, FbEvent, UserStore) ->
+  ($scope, $location, $timeout, $analytics, $intercom, Facebook, FbEvent, UserStore) ->
     $scope.user.events = null
     $scope.user.eventIds = null
     async.reduce(['attending', 'not_replied', 'maybe', 'declined'], [], (memo, status, cb) ->
@@ -67,9 +68,12 @@ ev.controller('SelectEventsCtrl', [
       )
     , (err, events) ->
       $scope.availableEvents = events
-      $analytics.eventTrack('events_select_length',
-        category: 'interesting'
-        label: "#{events.length}"
+      # $analytics.eventTrack('events_select_length',
+      #   category: 'interesting'
+      #   label: "#{events.length}"
+      # )
+      $intercom.trackEvent('events_select_length',
+        event_count: events.length
       )
     )
     
@@ -102,10 +106,14 @@ ev.controller('SelectEventsCtrl', [
           _.forEach($scope.user.events, (e) -> e.generateAllEventStats())
           addLoadingLine("-*- ANALYSIS COMPLETE -*-\nPlease wait...")
           $timeout( ->
-            label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
-            $analytics.eventTrack('analyse',
-              category: 'interesting'
-              label: label
+            # label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
+            # $analytics.eventTrack('analyse',
+            #   category: 'interesting'
+            #   label: label
+            # )
+            $intercom.trackEvent('analyse',
+              event_count: $scope.user.eventIds.length
+              total_facebook_users: UserStore.users
             )
             $location.url('/')
             $scope.user.eventsReady = true
@@ -136,7 +144,10 @@ ev.controller('VennCtrl', [
 ev.controller('GenderRatioIndexCtrl', [
   '$scope'
   'UserStore'
-  ($scope, UserStore) ->
+  ($scope, UserStore, $intercom) ->
+    $intercom.trackEvent('view_gender_ratio_index',
+      event_count: $scope.user.eventIds.length
+    )
 ])
 
 ev.controller('GenderRatioShowCtrl', [
@@ -145,4 +156,9 @@ ev.controller('GenderRatioShowCtrl', [
   'UserStore'
   ($scope, $routeParams, UserStore) ->
     $scope.event = $scope.user.events[$routeParams.id]
+    $intercom.trackEvent('view_gender_ratio_show',
+      female_invited_count: $scope.event.genderCounts.invited.f
+      male_invited_count: $scope.event.genderCounts.invited.m
+      neutral_invited_count: $scope.event.genderCounts.invited.n
+    )
 ])
