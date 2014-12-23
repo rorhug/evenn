@@ -77,6 +77,7 @@ ev.run([
         declined: 'danger'
         not_replied: 'active'
       words:
+        invited: 'All invited'
         attending: 'Going'
         unsure: 'Maybe'
         declined: 'Declined'
@@ -86,6 +87,19 @@ ev.run([
         unsure: 15
         declined: 14
         not_replied: 9
+    $rootScope.genderMeta =
+      names:
+        m: 'male'
+        f: 'female'
+        n: 'neutral'
+      capNames:
+        m: 'Male'
+        f: 'Female'
+        n: 'Neutral first-name'
+      icons:
+        m: 'fa-male'
+        f: 'fa-female'
+        n: 'fa-user'
 
     $rootScope.user = {}
     $rootScope.location = $location

@@ -18,6 +18,16 @@ input[type=search] {
   cursor: pointer;
 }
 
+.girl, .female {
+  color: #b6291e;
+}
+.guy, .male {
+  color: #084895;
+}
+.neutral {
+  color: #777;
+}
+
 .select-events-panel {
   .panel-heading {
     padding: 6px 7px;
@@ -82,10 +92,24 @@ input[type=search] {
   color: #FFFFFF;
 }
 
-.gender-ratios .page-header {
-  margin-top: 0px;
-  h4 {
+.gender-ratios {
+ .page-header {
     margin-top: 0px;
+    h4 {
+      margin-top: 0px;
+    }
+  }
+  .row {
+    margin-bottom: 10px;
+  }
+  .ratio-chart {
+    margin-bottom: 10px;
+  }
+  .gender-counts-well {
+    font-size: 17px;
+    .rsvp-type {
+      font-size: 24px;
+    }
   }
 }
 
@@ -99,12 +123,10 @@ table {
   align-items: stretch;
   height: 500px; /* this can vary */
 }
-
 table * {
   box-sizing: inherit;
   -moz-box-sizing: inherit;
 }
-
 thead {
   display: flex;
   display: -webkit-flex;
@@ -112,12 +134,10 @@ thead {
   -webkit-flex-direction: column;
   align-items: stretch;
 }
-
 tbody {
   overflow-y: scroll;
   display: inline-block;
 }
-
 thead > tr, tbody > tr, tfoot > tr {
   display: flex;
   display: -webkit-flex;
@@ -126,24 +146,24 @@ thead > tr, tbody > tr, tfoot > tr {
   flex-wrap: nowrap;
   -webkit-flex-wrap: nowrap;
 }
-
 thead, tfoot {
   flex-shrink: 0;
   -webkit-flex-shrink: 0;
 }
-
 th, tbody td {
   width: 20%; /* this can vary */
   overflow-x: hidden;
   text-overflow: ellipsis;
   display: inline-block;
 }
-
 tfoot {
   display: inline-block;
 }
-
 tfoot td {
   width: 100%;
   display: inline-block;
+}
+
+.footer {
+  margin-top: 10px;
 }

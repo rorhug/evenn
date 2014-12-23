@@ -1,6 +1,8 @@
 var ev;
 
-ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics']);
+Chart.defaults.global.responsive = true;
+
+ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics', 'chart.js']);
 
 var ev;
 
@@ -11,12 +13,18 @@ ev.controller('MainCtrl', [
     $scope.goBack = function() {
       return $window.history.back();
     };
-    return $scope.logout = function() {
+    $scope.logout = function() {
       Facebook.logout();
       _.forEach(Object.keys($scope.user), function(k) {
-        return $scope.user[k];
+        return delete $scope.user[k];
       });
       return $location.url("/login");
+    };
+    return $scope.changeEvents = function() {
+      _.forEach(_.without(Object.keys($scope.user), 'fb'), function(k) {
+        return delete $scope.user[k];
+      });
+      return $location.url('/select');
     };
   }
 ]);
@@ -91,7 +99,7 @@ ev.controller('SelectEventsCtrl', [
       return async.reduce(selectedEvents, {}, function(memo, event, cb) {
         return memo[event.id] = new FbEvent(event, function() {
           loadedCount += 1;
-          addLoadingLine("Loaded " + loadedCount + " of " + selectedEvents.length);
+          addLoadingLine("Loaded " + loadedCount + " of " + selectedEvents.length + " ('" + event.name + "')");
           return cb(null, memo);
         });
       }, function(err, events) {
@@ -106,7 +114,6 @@ ev.controller('SelectEventsCtrl', [
           addLoadingLine("-*- ANALYSIS COMPLETE -*-\nPlease wait...");
           return $timeout(function() {
             var label;
-            console.log($scope.user.events);
             label = "" + $scope.user.eventIds.length + "e" + (_.size(UserStore.users)) + "u";
             $analytics.eventTrack('analyse', {
               category: 'interesting',
@@ -136,9 +143,7 @@ ev.controller('GenderRatioIndexCtrl', ['$scope', 'UserStore', function($scope, U
 
 ev.controller('GenderRatioShowCtrl', [
   '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
-    $scope.event = $scope.user.events[$routeParams.id];
-    $scope.selectedRsvpType = 'attending';
-    return $scope.$watch('selectedRsvpType', function(newValue) {});
+    return $scope.event = $scope.user.events[$routeParams.id];
   }
 ]);
 
@@ -163,7 +168,7 @@ ev.directive('genderRatio', [
       scope: {
         counts: "="
       },
-      template: "<span>\n  <span ng-class=\"{'text-danger': counts.isFemaleToMale, 'text-info': !counts.isFemaleToMale}\">\n    {{counts.ratio}} {{counts.isFemaleToMale ? 'girls' : 'guys'}}\n  </span> to\n  <span ng-class=\"{'text-danger': !counts.isFemaleToMale, 'text-info': counts.isFemaleToMale}\">\n    1 {{counts.isFemaleToMale ? 'guy' : 'girl'}}\n  </span>\n</span>"
+      template: "<span>\n  <span ng-class=\"{'girl': counts.isFemaleToMale, 'guy': !counts.isFemaleToMale}\">\n    {{counts.ratio}} {{counts.isFemaleToMale ? 'girls' : 'guys'}}\n  </span> to\n  <span ng-class=\"{'girl': !counts.isFemaleToMale, 'guy': counts.isFemaleToMale}\">\n    1 {{counts.isFemaleToMale ? 'guy' : 'girl'}}\n  </span>\n</span>"
     };
   }
 ]);
@@ -174,9 +179,62 @@ ev.directive('genderCounts', [
       restrict: 'AE',
       scope: {
         counts: "=",
-        rsvp: "="
+        rsvp: "=",
+        percentages: "=",
+        newLines: '='
       },
-      template: "<span>\n  <span class=\"text-danger\">{{counts[rsvp].f}} <i class=\"fa fa-female\"></i></span>\n  <span class=\"text-info\">{{counts[rsvp].m}} <i class=\"fa fa-male\"></i></span>\n  <span ng-show=\"counts[rsvp].n\" class=\"text-muted\">{{counts[rsvp].n}} <i class=\"fa fa-user\"></i></span>\n</span>"
+      link: function(scope) {
+        return scope.gTypes = ['f', 'm', 'n'];
+      },
+      template: "<span>\n  <span ng-repeat=\"g in gTypes\" ng-class=\"[$root.genderMeta.names[g]]\"\n    ng-show=\"counts[g]\" bs-tooltip title=\"{{$root.genderMeta.capNames[g]}}\">\n    <strong>{{counts[g]}}</strong>\n    <span ng-if=\"percentages\">({{counts[g + 'Cent']}}%)</span>\n    <i ng-class=\"['fa', $root.genderMeta.icons[g]]\"></i>\n    <br ng-if=\"newLines\">\n  </span>\n</span>"
+    };
+  }
+]);
+
+ev.directive('genderRatioPie', [
+  '$timeout', function($timeout) {
+    return {
+      template: "<div class=\"ratio-chart\">\n  <h3 class=\"text-center\">\n    <gender-ratio counts=\"counts[selectedRsvpType]\"></gender-ratio>\n  </h3>\n  <p ng-hide=\"chartData.length\" class=\"text-center\">Loading chart...</p>\n  <canvas ng-if=\"chartData.length\" class=\"chart chart-doughnut\"\n    data=\"chartData\" labels=\"labels\" colours=\"colours\"></canvas>\n  <div class=\"btn-group text-center\" ng-model=\"selectedRsvpType\" bs-radio-group>\n    <label class=\"btn btn-default btn-sm\"><input type=\"radio\" value=\"attending\">Going</label>\n    <label class=\"btn btn-default btn-sm\"><input type=\"radio\" value=\"invited\">All invited</label>\n  </div>\n</div>",
+      scope: {
+        counts: '='
+      },
+      link: function(scope) {
+        scope.colours = [
+          {
+            fillColor: "rgba(182,41,30,0.2)",
+            strokeColor: "rgba(182,41,30,1)",
+            pointColor: "rgba(182,41,30,1)",
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: "rgba(182,41,30,0.8)"
+          }, {
+            fillColor: "rgba(220,220,220,0.2)",
+            strokeColor: "rgba(220,220,220,1)",
+            pointColor: "rgba(220,220,220,1)",
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: "rgba(220,220,220,0.8)"
+          }, {
+            fillColor: "rgba(8,72,149,0.2)",
+            strokeColor: "rgba(8,72,149,1)",
+            pointColor: "rgba(8,72,149,1)",
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: "rgba(8,72,149,0.8)"
+          }
+        ];
+        scope.labels = ['Female', 'Neutral first name', 'Male'];
+        scope.chartData = [];
+        scope.$watch('selectedRsvpType', function(newValue) {
+          scope.chartData = [];
+          return $timeout(function() {
+            return _.forEach(['f', 'n', 'm'], function(gender, index) {
+              return scope.chartData[index] = scope.counts[newValue][gender];
+            });
+          }, 200);
+        });
+        return scope.selectedRsvpType = 'attending';
+      }
     };
   }
 ]);
@@ -316,6 +374,7 @@ ev.run([
         not_replied: 'active'
       },
       words: {
+        invited: 'All invited',
         attending: 'Going',
         unsure: 'Maybe',
         declined: 'Declined',
@@ -326,6 +385,23 @@ ev.run([
         unsure: 15,
         declined: 14,
         not_replied: 9
+      }
+    };
+    $rootScope.genderMeta = {
+      names: {
+        m: 'male',
+        f: 'female',
+        n: 'neutral'
+      },
+      capNames: {
+        m: 'Male',
+        f: 'Female',
+        n: 'Neutral first-name'
+      },
+      icons: {
+        m: 'fa-male',
+        f: 'fa-female',
+        n: 'fa-user'
       }
     };
     $rootScope.user = {};
@@ -507,23 +583,31 @@ ev.service('FbEvent', [
       };
 
       FbEvent.prototype._genderCountsFor = function(list) {
-        var gc;
+        var gc, self;
+        self = this;
         gc = {
           f: 0,
           m: 0,
           n: 0
         };
         _.assign(gc, _.countBy(list, 'gender'));
-        gc.isFemaleToMale = gc.f >= gc.m;
-        if (gc.f === 0 || gc.m === 0) {
+        if (gc.f === 0) {
           gc.ratio = 0;
+          gc.isFemaleToMale = true;
+        } else if (gc.m === 0) {
+          gc.ratio = 0;
+          gc.isFemaleToMale = false;
         } else {
+          gc.isFemaleToMale = gc.f >= gc.m;
           gc.ratio = gc.f / gc.m;
           if (!gc.isFemaleToMale) {
             gc.ratio = 1 / gc.ratio;
           }
           gc.ratio = Math.round(gc.ratio * 100) / 100;
         }
+        _.forEach(['f', 'm', 'n'], function(gender) {
+          return gc["" + gender + "Cent"] = Math.round((gc[gender] / self.invitedCount) * 1000) / 10;
+        });
         return gc;
       };
 

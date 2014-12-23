@@ -97,16 +97,24 @@ ev.service('FbEvent', [
         )
 
       _genderCountsFor: (list) ->
+        self = @
         # gender count
         gc = {f: 0, m: 0, n: 0}
         _.assign(gc, _.countBy(list, 'gender'))
-        gc.isFemaleToMale = gc.f >= gc.m
-        if gc.f is 0 or gc.m is 0
+        if gc.f is 0
           gc.ratio = 0
+          gc.isFemaleToMale = true
+        else if gc.m is 0
+          gc.ratio = 0
+          gc.isFemaleToMale = false
         else
+          gc.isFemaleToMale = gc.f >= gc.m
           gc.ratio = gc.f/gc.m
           gc.ratio = 1/gc.ratio unless gc.isFemaleToMale
           gc.ratio = Math.round(gc.ratio * 100)/100
+        _.forEach(['f', 'm', 'n'], (gender) ->
+          gc["#{gender}Cent"] = Math.round((gc[gender] / self.invitedCount) * 1000)/10
+        )
         gc
 
       generateAllEventStats: ->

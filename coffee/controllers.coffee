@@ -12,8 +12,12 @@ ev.controller('MainCtrl', [
 
     $scope.logout = ->
       Facebook.logout()
-      _.forEach(Object.keys($scope.user), (k) -> $scope.user[k])
+      _.forEach(Object.keys($scope.user), (k) -> delete $scope.user[k])
       $location.url("/login")
+
+    $scope.changeEvents = ->
+      _.forEach(_.without(Object.keys($scope.user), 'fb'), (k) -> delete $scope.user[k])
+      $location.url('/select')
 ])
 
 ev.controller('LoginCtrl', [
@@ -87,7 +91,7 @@ ev.controller('SelectEventsCtrl', [
       async.reduce(selectedEvents, {}, (memo, event, cb) ->
         memo[event.id] = new FbEvent(event, ->
           loadedCount += 1
-          addLoadingLine("Loaded #{loadedCount} of #{selectedEvents.length}")
+          addLoadingLine("Loaded #{loadedCount} of #{selectedEvents.length} ('#{event.name}')")
           cb(null, memo)
         )
       , (err, events) ->
@@ -99,7 +103,6 @@ ev.controller('SelectEventsCtrl', [
           _.forEach($scope.user.events, (e) -> e.generateAllEventStats())
           addLoadingLine("-*- ANALYSIS COMPLETE -*-\nPlease wait...")
           $timeout( ->
-            console.log($scope.user.events)
             label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
             $analytics.eventTrack('analyse',
               category: 'interesting'
@@ -143,17 +146,4 @@ ev.controller('GenderRatioShowCtrl', [
   'UserStore'
   ($scope, $routeParams, UserStore) ->
     $scope.event = $scope.user.events[$routeParams.id]
-
-    $scope.selectedRsvpType = 'attending'
-    $scope.$watch('selectedRsvpType', (newValue) ->
-      # newData = [
-      #     key: 'Male'
-      #     y: $scope.event.genderCounts[newValue].m
-      #   ,
-      #     key: 'Female'
-      #     y: $scope.event.genderCounts[newValue].f
-      # ]
-      # console.log(newData)
-      # $scope.pieChart.data = newData
-    )
 ])

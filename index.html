@@ -20,12 +20,14 @@
 
   <script src="/vendor/lodash.min.js"></script>
   <script src="/vendor/async.min.js"></script>
+  <script src="/vendor/chart.min.js"></script>
   <script src="/vendor/angular.min.js"></script>
   <script src="/vendor/angular-route.min.js"></script>
   <script src="/vendor/angular-animate.min.js"></script>
   <script src="/vendor/angular-strap.min.js"></script>
   <script src="/vendor/angular-strap.tpl.min.js"></script>
   <script src="/vendor/angular-facebook.js"></script>
+  <script src="/vendor/angular-chart.min.js"></script>
   <script src="/vendor/smart-table.min.js"></script>
   <script src="/vendor/angulartics.js"></script>
   <script src="/public/comp.js"></script>
@@ -67,17 +69,19 @@
           </ul>
           <ul class="nav navbar-nav navbar-right" ng-show="user.fb">
             <li>
-              <a bs-collapse-toggle ng-click="logout()"><i class="fa fa-sign-out"></i> Logout</a>
+              <a bs-collapse-toggle ng-click="changeEvents()" ng-show="user.eventsReady"><i class="fa fa-file-o"></i> Change events</a>
             </li>
+            <li><a bs-collapse-toggle ng-click="logout()"><i class="fa fa-sign-out"></i> Logout</a></li>
           </ul>
         </div>
       </div>
     </nav>
 
     <ng-view></ng-view>
-    <div class="well well-sm text-muted">
+
+    <div class="footer well well-sm text-muted">
       <a href="#/about">What is this?</a> | 
-      Made by <a href="http://rory.ie/me">Rory Hughes</a>
+      Made by <a href="http://rory.ie/me" target="_blank">Rory Hughes</a>
     </div>
   </div>
 
@@ -170,7 +174,7 @@
           <a ng-if="event.description.length > 100" ng-click="event._showDescription = !event._showDescription" ng-bind="event._showDescription ? 'Show Less' : 'Show More'"></a>
         </span>
         <ul class="list-inline">
-          <li><strong ng-bind="event.invitedCount"></strong> Total invited</li>
+          <li><strong ng-bind="event.invitedCount"></strong> All invited</li>
           <li ng-repeat="rsvp in event.rsvpTypes">
             <strong ng-bind="event[rsvp + 'Count']"></strong>
             <span ng-bind="$root.rsvpMeta.words[rsvp]"></span>
@@ -198,7 +202,7 @@
         <a ng-repeat="(id, event) in user.events" class="list-group-item" ng-href="#/events/{{id}}/genders">
           <h4 class="list-group-item-heading">
             <span ng-bind="event.name"></span>
-            <gender-counts counts="event.genderCounts" rsvp="'attending'"></gender-counts>
+            <gender-counts counts="event.genderCounts['attending']"></gender-counts>
           </h4>
           <p class="list-group-item-text">
             <small>{{event.location}}, {{event.start_time| date : 'yyyy-MM-dd HH:mm'}}</small>
@@ -220,17 +224,22 @@
       <div class="page-header">
         <h4>
           <a class="btn btn-default btn-sm" href="#/genders"><i class="fa fa-chevron-left"></i> Change event</a>
-          Gender Ratio <span class="text-muted">for '{{event.name}}'</span>
+          Gender Ratio for <strong>'{{event.name}}'</strong>
         </h4>
       </div>
-      <h3 class="text-center">
-        <gender-ratio counts="event.genderCounts[selectedRsvpType]"></gender-ratio>
-        <div class="btn-group pull-right" ng-model="selectedRsvpType" bs-radio-group>
-          <label class="btn btn-default"><input type="radio" class="btn btn-default" value="attending">Going</label>
-          <label class="btn btn-default"><input type="radio" class="btn btn-default" value="invited">All invited</label>
+      <div class="row">
+        <div class="col-sm-7">
+          <gender-ratio-pie counts="event.genderCounts"></gender-ratio-pie>
         </div>
-      </h3>
-      <nvd3 options="pieChart.options" data="pieChart.data"></nvd3>
+        <div class="col-sm-5">
+          <div class="well well-sm gender-counts-well">
+            <div ng-repeat="(rsvp, counts) in event.genderCounts">
+              <strong class="rsvp-type" ng-bind="rsvpMeta.words[rsvp]"></strong><br>
+              <gender-counts counts="counts" percentages="true" new-lines="true"></gender-counts>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="col-md-4">
@@ -284,9 +293,9 @@
   <h4><u>Evenn can answer all your questions!</u></h4>
   <strong>It allows you to:</strong>
   <ul>
-    <li>Merge multiple guest lists into one big searchable colour-coded table.</li>
-    <li><strong class="text-muted">(Coming Soon!)</strong> See a venn diagram of the guests going to multiple parties.</li>
-    <li><strong class="text-muted">(Coming Soon!)</strong> Rank events in terms of gender ratio!</li>
+    <li>Merge multiple guest lists into one big searchable colour-coded table</li>
+    <li>See the gender ratio of each event</li>
+    <li><strong class="text-muted">(Coming Soon!)</strong> See a venn diagram of the guests going to multiple parties</li>
   </ul>
 </script>
 
@@ -296,7 +305,7 @@
       <h4 class="panel-title">How this works</h4>
     </div>
     <div class="panel-body">
-      Facebook unfortunately doesn't give access to gender information freely via their API so I've had to come up with a compromise. It <a href="https://github.com/bmuller/gender_detector/">guesses the gender</a> of people based on first name. Obviously unisex names exist so they won't appear in the ratio but it should give a good indication.
+      Facebook unfortunately doesn't give access to gender information freely via their API so I've had to come up with a compromise. It <a href="https://github.com/bmuller/gender_detector/">guesses the gender</a> of people based on first name. Obviously unisex names (which show as a grey, neutral gender) exist so they won't appear in the ratio but it should give a good indication.
     </div>
   </div>
 </script>
