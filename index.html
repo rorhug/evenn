@@ -201,7 +201,7 @@
       <div class="list-group">
         <a ng-repeat="(id, event) in user.events" class="list-group-item" ng-href="#/events/{{id}}/genders">
           <h4 class="list-group-item-heading">
-            <span ng-bind="event.name"></span>
+            <span ng-bind="event.name"></span><br>
             <gender-counts counts="event.genderCounts['attending']"></gender-counts>
           </h4>
           <p class="list-group-item-text">
