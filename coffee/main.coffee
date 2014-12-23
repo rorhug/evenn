@@ -106,6 +106,13 @@ ev.run([
     noAuthRoutes = ['/login', '/about']
 
     delayedLoad = -> $timeout((-> $rootScope.evennLoaded = true), 1000)
+    $rootScope.loadMe = (cb) ->
+      Facebook.api('/me',
+        fields: 'id,email,name,first_name,gender,timezone,link'
+      , (res) ->
+        $rootScope.user.fb = res
+        cb()
+      )
     
     $rootScope.$on('$locationChangeStart', (e, next, current) ->
       url = $location.url()
@@ -118,14 +125,12 @@ ev.run([
           $location.url('/select')
       else
         e.preventDefault()
-        Facebook.getLoginStatus (response) ->
-          if response.status is 'connected'
-            Facebook.api('/me', (response) ->
-              $rootScope.user.fb = response
+        Facebook.getLoginStatus (res) ->
+          if res.status is 'connected'
+            $rootScope.loadMe ->
               $location.url('/select')
               $route.reload()
               delayedLoad()
-            )
           else
             $location.url('/login')
             $route.reload()

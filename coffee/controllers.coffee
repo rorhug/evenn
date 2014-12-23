@@ -27,22 +27,21 @@ ev.controller('LoginCtrl', [
   '$alert'
   'Facebook'
   ($scope, $http, $location, $alert, Facebook) ->
+    neededPermissions = ['user_events', 'rsvp_event', 'email']
     $scope.login = ->
       Facebook.login((response) ->
         availablePermissions = response.authResponse.grantedScopes.split(',')
         if response.status is 'connected'
-          if _.contains(availablePermissions, 'user_events') && _.contains(availablePermissions, 'rsvp_event')
-            return Facebook.api('/me', (response) ->
-              $scope.user.fb = response
-              $location.url('/select')
-            )
+          # If all permissions are permitted
+          if _.without.apply(_, [neededPermissions].concat(availablePermissions)).length is 0
+            return $scope.loadMe -> $location.url('/select')
           else
             $scope.loginError = "Error logging in. All permissions must be accepted!"
         else
           $scope.loginError = "There was a problem logging into Facebook!"
         Facebook.logout()
       ,
-        scope: 'user_events,rsvp_event'
+        scope: neededPermissions.join(',')
         return_scopes: true
         auth_type: 'rerequest'
       )

@@ -31,14 +31,15 @@ ev.controller('MainCtrl', [
 
 ev.controller('LoginCtrl', [
   '$scope', '$http', '$location', '$alert', 'Facebook', function($scope, $http, $location, $alert, Facebook) {
+    var neededPermissions;
+    neededPermissions = ['user_events', 'rsvp_event', 'email'];
     return $scope.login = function() {
       return Facebook.login(function(response) {
         var availablePermissions;
         availablePermissions = response.authResponse.grantedScopes.split(',');
         if (response.status === 'connected') {
-          if (_.contains(availablePermissions, 'user_events') && _.contains(availablePermissions, 'rsvp_event')) {
-            return Facebook.api('/me', function(response) {
-              $scope.user.fb = response;
+          if (_.without.apply(_, [neededPermissions].concat(availablePermissions)).length === 0) {
+            return $scope.loadMe(function() {
               return $location.url('/select');
             });
           } else {
@@ -49,7 +50,7 @@ ev.controller('LoginCtrl', [
         }
         return Facebook.logout();
       }, {
-        scope: 'user_events,rsvp_event',
+        scope: neededPermissions.join(','),
         return_scopes: true,
         auth_type: 'rerequest'
       });
@@ -412,6 +413,14 @@ ev.run([
         return $rootScope.evennLoaded = true;
       }), 1000);
     };
+    $rootScope.loadMe = function(cb) {
+      return Facebook.api('/me', {
+        fields: 'id,email,name,first_name,gender,timezone,link'
+      }, function(res) {
+        $rootScope.user.fb = res;
+        return cb();
+      });
+    };
     return $rootScope.$on('$locationChangeStart', function(e, next, current) {
       var url;
       url = $location.url();
@@ -424,10 +433,9 @@ ev.run([
         }
       } else {
         e.preventDefault();
-        return Facebook.getLoginStatus(function(response) {
-          if (response.status === 'connected') {
-            return Facebook.api('/me', function(response) {
-              $rootScope.user.fb = response;
+        return Facebook.getLoginStatus(function(res) {
+          if (res.status === 'connected') {
+            return $rootScope.loadMe(function() {
               $location.url('/select');
               $route.reload();
               return delayedLoad();
@@ -482,6 +490,7 @@ ev.service('UserStore', [
         this.id = fbObj.id;
         this.name = fbObj.name;
         this.first_name = fbObj.first_name;
+        this.email = fbObj.email;
         this.link = fbObj.link;
         this.picture_url = fbObj.picture.data.url;
         this.events = {};
