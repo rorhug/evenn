@@ -6,17 +6,20 @@ ev.controller('MainCtrl', [
   '$http'
   '$location'
   'Facebook'
-  ($window, $scope, $http, $location, Facebook) ->
+  'UserStore'
+  ($window, $scope, $http, $location, Facebook, UserStore) ->
     $scope.goBack = ->
       $window.history.back()
 
     $scope.logout = ->
       Facebook.logout()
       _.forEach(Object.keys($scope.user), (k) -> delete $scope.user[k])
+      UserStore.removeAll()
       $location.url("/login")
 
     $scope.changeEvents = ->
       _.forEach(_.without(Object.keys($scope.user), 'fb'), (k) -> delete $scope.user[k])
+      UserStore.removeAll()
       $location.url('/select')
 ])
 

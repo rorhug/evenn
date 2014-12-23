@@ -56,6 +56,9 @@ ev.service('UserStore', [
           self.loadedGenders = true
           cb(self.users)
         )
+      removeAll: ->
+        self = @
+        _.forEach(Object.keys(@users), (id) -> delete self.users[id])
 ])
 
 ev.service('FbEvent', [

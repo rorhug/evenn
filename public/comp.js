@@ -9,7 +9,7 @@ var ev;
 ev = angular.module('evenn');
 
 ev.controller('MainCtrl', [
-  '$window', '$scope', '$http', '$location', 'Facebook', function($window, $scope, $http, $location, Facebook) {
+  '$window', '$scope', '$http', '$location', 'Facebook', 'UserStore', function($window, $scope, $http, $location, Facebook, UserStore) {
     $scope.goBack = function() {
       return $window.history.back();
     };
@@ -18,12 +18,14 @@ ev.controller('MainCtrl', [
       _.forEach(Object.keys($scope.user), function(k) {
         return delete $scope.user[k];
       });
+      UserStore.removeAll();
       return $location.url("/login");
     };
     return $scope.changeEvents = function() {
       _.forEach(_.without(Object.keys($scope.user), 'fb'), function(k) {
         return delete $scope.user[k];
       });
+      UserStore.removeAll();
       return $location.url('/select');
     };
   }
@@ -557,6 +559,13 @@ ev.service('UserStore', [
           });
           self.loadedGenders = true;
           return cb(self.users);
+        });
+      },
+      removeAll: function() {
+        var self;
+        self = this;
+        return _.forEach(Object.keys(this.users), function(id) {
+          return delete self.users[id];
         });
       }
     };
