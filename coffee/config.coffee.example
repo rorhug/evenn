@@ -1,0 +1,4 @@
+window.evennConfig =
+  ga_id: 'UA-00000000-00'
+  fb_app_id: '000000000000000'
+  intercom_app_id: 'abcd1234'
