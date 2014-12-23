@@ -115,7 +115,7 @@ ev.controller('SelectEventsCtrl', [
           return $timeout(function() {
             $intercom.trackEvent('analyse', {
               event_count: $scope.user.eventIds.length,
-              total_facebook_users: UserStore.users
+              total_facebook_users: _.size(UserStore.users)
             });
             $location.url('/');
             return $scope.user.eventsReady = true;
