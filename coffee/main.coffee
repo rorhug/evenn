@@ -43,12 +43,12 @@ ev.config([
       animation: null
 
     FacebookProvider.init(
-      appId: '316035781927497'
+      appId: window.evennConfig.fb_app_id
       version: 'v2.2'
     )
 
     unless window.evennIsLocalhost
-      $intercomProvider.appID('as2avokq')
+      $intercomProvider.appID(window.evennConfig.intercom_app_id)
       $intercomProvider.asyncLoading(true)
 
     $httpProvider.defaults.headers.common = {}

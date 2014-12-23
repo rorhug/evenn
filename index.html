@@ -7,18 +7,6 @@
   <link rel="stylesheet" type="text/css" href="/vendor/fontawesome/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="/public/comp.css">
 
-  <script type="text/javascript">
-    window.evennIsLocalhost = (/^localhost/).test(location.host);
-    if (!window.evennIsLocalhost) {
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-38398315-11', 'auto');
-    }
-  </script>
-
   <script src="/vendor/lodash.min.js"></script>
   <script src="/vendor/async.min.js"></script>
   <script src="/vendor/chart.min.js"></script>
@@ -33,6 +21,17 @@
   <script src="/vendor/angulartics.js"></script>
   <script src="/vendor/angular-intercom.min.js"></script>
   <script src="/public/comp.js"></script>
+  <script type="text/javascript">
+    window.evennIsLocalhost = (/^localhost/).test(location.host);
+    if (!window.evennIsLocalhost) {
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', window.evennConfig.ga_id, 'auto');
+    }
+  </script>
 </head>
 <body ng-controller="MainCtrl">
   <div id="start-screen" ng-class="{'fade-out': evennLoaded}">
