@@ -10,6 +10,10 @@ input[type=search] {
   outline: none;
 }
 
+.no-margin {
+  margin: 0;
+}
+
 .list-group-item, a {
   cursor: pointer;
 }
@@ -78,6 +82,12 @@ input[type=search] {
   color: #FFFFFF;
 }
 
+.gender-ratios .page-header {
+  margin-top: 0px;
+  h4 {
+    margin-top: 0px;
+  }
+}
 
 table {
   box-sizing: border-box;

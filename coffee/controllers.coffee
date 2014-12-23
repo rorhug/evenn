@@ -136,3 +136,24 @@ ev.controller('GenderRatioIndexCtrl', [
   'UserStore'
   ($scope, UserStore) ->
 ])
+
+ev.controller('GenderRatioShowCtrl', [
+  '$scope'
+  '$routeParams'
+  'UserStore'
+  ($scope, $routeParams, UserStore) ->
+    $scope.event = $scope.user.events[$routeParams.id]
+
+    $scope.selectedRsvpType = 'attending'
+    $scope.$watch('selectedRsvpType', (newValue) ->
+      # newData = [
+      #     key: 'Male'
+      #     y: $scope.event.genderCounts[newValue].m
+      #   ,
+      #     key: 'Female'
+      #     y: $scope.event.genderCounts[newValue].f
+      # ]
+      # console.log(newData)
+      # $scope.pieChart.data = newData
+    )
+])

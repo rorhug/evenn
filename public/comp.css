@@ -7,6 +7,9 @@ input[type=search] {
 * {
   outline: none; }
 
+.no-margin {
+  margin: 0; }
+
 .list-group-item, a {
   cursor: pointer; }
 
@@ -55,6 +58,11 @@ input[type=search] {
 .highlighted-column {
   background-color: #383838;
   color: #FFFFFF; }
+
+.gender-ratios .page-header {
+  margin-top: 0px; }
+  .gender-ratios .page-header h4 {
+    margin-top: 0px; }
 
 table {
   box-sizing: border-box;

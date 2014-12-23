@@ -3,8 +3,8 @@
 <head>
   <title>Evenn</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" type="text/css" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="/bower_components/fontawesome/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="/vendor/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="/vendor/fontawesome/css/font-awesome.min.css">
   <link rel="stylesheet" type="text/css" href="/public/comp.css">
 
   <script>
@@ -18,16 +18,16 @@
     }
   </script>
 
-  <script src="/bower_components/lodash/dist/lodash.min.js"></script>
-  <script src="/bower_components/async/dist/async.min.js"></script>
-  <script src="/bower_components/angular/angular.min.js"></script>
-  <script src="/bower_components/angular-route/angular-route.min.js"></script>
-  <script src="/bower_components/angular-animate/angular-animate.min.js"></script>
-  <script src="/bower_components/angular-strap/dist/angular-strap.min.js"></script>
-  <script src="/bower_components/angular-strap/dist/angular-strap.tpl.min.js"></script>
-  <script src="/bower_components/angular-facebook/lib/angular-facebook.js"></script>
-  <script src="/bower_components/angular-smart-table/dist/smart-table.min.js"></script>
-  <script src="/angulartics.js"></script>
+  <script src="/vendor/lodash.min.js"></script>
+  <script src="/vendor/async.min.js"></script>
+  <script src="/vendor/angular.min.js"></script>
+  <script src="/vendor/angular-route.min.js"></script>
+  <script src="/vendor/angular-animate.min.js"></script>
+  <script src="/vendor/angular-strap.min.js"></script>
+  <script src="/vendor/angular-strap.tpl.min.js"></script>
+  <script src="/vendor/angular-facebook.js"></script>
+  <script src="/vendor/smart-table.min.js"></script>
+  <script src="/vendor/angulartics.js"></script>
   <script src="/public/comp.js"></script>
 </head>
 <body ng-controller="MainCtrl">
@@ -95,7 +95,8 @@
 <script type="text/ng-template" id="select.html">
   <div class="panel panel-default select-events-panel">
     <div ng-show="loadingMessage" class="panel-body">
-      <pre ng-bind="loadingMessage"></pre>
+      <h3 class="no-margin">Please wait...</h3>
+      <pre ng-bind="loadingMessage" class="no-margin"></pre>
     </div>
     <div ng-hide="loadingMessage" class="panel-heading">
       <strong class="pull-left" ng-class="{'text-danger': selectedEventCount > maxSelection}">
@@ -149,7 +150,7 @@
       <h3 ng-bind="event.name"></h3>
       <p>
         <a class="btn btn-default btn-sm" ng-href="#/table?highlight={{event.id}}"><i class="fa fa-list"></i> Show in Big List</a>
-        <a class="btn btn-default btn-sm"><i class="fa fa-users"></i> Gender Ratio</a>
+        <a class="btn btn-default btn-sm" ng-href="#/events/{{event.id}}/genders"><i class="fa fa-users"></i> Gender Ratio</a>
       </p>
       <p class="event-details">
         <strong>Created by</strong>
@@ -188,12 +189,13 @@
 </script>
 
 <script type="text/ng-template" id="gender-ratio-index.html">
-  <h3>Gender Ratios</h3>
-
-  <div class="row">
+  <div class="row gender-ratios">
     <div class="col-md-7">
+      <div class="page-header">
+        <h3>Gender Ratio <small>Select an event for detailed information</small></h3>
+      </div>
       <div class="list-group">
-        <a ng-repeat="(id, event) in user.events" class="list-group-item">
+        <a ng-repeat="(id, event) in user.events" class="list-group-item" ng-href="#/events/{{id}}/genders">
           <h4 class="list-group-item-heading">
             <span ng-bind="event.name"></span>
             <gender-counts counts="event.genderCounts" rsvp="'attending'"></gender-counts>
@@ -206,14 +208,33 @@
     </div>
 
     <div class="col-md-5">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">How this works</h4>
-        </div>
-        <div class="panel-body">
-          Facebook unfortunately doesn't give access to gender information freely via their API so I've had to come up with a compromise. It <a href="https://github.com/bmuller/gender_detector/">guesses the gender</a> of people based on first name. Obviously unisex names exist so they won't appear in the ratio but it should give a good indication.
-        </div>
+      <about-gender-ratios></about-gender-ratios>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="gender-ratio-show.html">
+  <div class="row gender-ratios">
+    <h3 class="text-center" ng-hide="event">Unable to find event with that id... :(</h3>
+    <div class="col-md-8" ng-if="event">
+      <div class="page-header">
+        <h4>
+          <a class="btn btn-default btn-sm" href="#/genders"><i class="fa fa-chevron-left"></i> Change event</a>
+          Gender Ratio <span class="text-muted">for '{{event.name}}'</span>
+        </h4>
       </div>
+      <h3 class="text-center">
+        <gender-ratio counts="event.genderCounts[selectedRsvpType]"></gender-ratio>
+        <div class="btn-group pull-right" ng-model="selectedRsvpType" bs-radio-group>
+          <label class="btn btn-default"><input type="radio" class="btn btn-default" value="attending">Going</label>
+          <label class="btn btn-default"><input type="radio" class="btn btn-default" value="invited">All invited</label>
+        </div>
+      </h3>
+      <nvd3 options="pieChart.options" data="pieChart.data"></nvd3>
+    </div>
+
+    <div class="col-md-4">
+      <about-gender-ratios></about-gender-ratios>
     </div>
   </div>
 </script>
@@ -269,10 +290,17 @@
   </ul>
 </script>
 
-<script src="/bower_components/d3/d3.js"></script>
-<script src="/bower_components/nvd3/nv.d3.min.js"></script>
-<script src="/bower_components/angular-nvd3/dist/angular-nvd3.min.js"></script>
-<link rel="stylesheet" href="/bower_components/nvd3/nv.d3.css">
+<script type="text/ng-template" id="about-gender-ratios.html">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">How this works</h4>
+    </div>
+    <div class="panel-body">
+      Facebook unfortunately doesn't give access to gender information freely via their API so I've had to come up with a compromise. It <a href="https://github.com/bmuller/gender_detector/">guesses the gender</a> of people based on first name. Obviously unisex names exist so they won't appear in the ratio but it should give a good indication.
+    </div>
+  </div>
+</script>
+
 
 </body>
 </html>

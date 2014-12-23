@@ -1,6 +1,6 @@
 var ev;
 
-ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics', 'nvd3']);
+ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics']);
 
 var ev;
 
@@ -134,6 +134,14 @@ ev.controller('VennCtrl', ['$scope', function($scope) {}]);
 
 ev.controller('GenderRatioIndexCtrl', ['$scope', 'UserStore', function($scope, UserStore) {}]);
 
+ev.controller('GenderRatioShowCtrl', [
+  '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
+    $scope.event = $scope.user.events[$routeParams.id];
+    $scope.selectedRsvpType = 'attending';
+    return $scope.$watch('selectedRsvpType', function(newValue) {});
+  }
+]);
+
 var ev;
 
 ev = angular.module('evenn');
@@ -155,7 +163,7 @@ ev.directive('genderRatio', [
       scope: {
         counts: "="
       },
-      template: "<span>\n  <span class=\"text-danger\">{{counts.ratio}} {{counts.isFemaleToMale ? 'girls' : 'guys'}}</span> to\n  <span class=\"text-info\">1 {{counts.isFemaleToMale ? 'guy' : 'girl'}}</span>\n</span>"
+      template: "<span>\n  <span ng-class=\"{'text-danger': counts.isFemaleToMale, 'text-info': !counts.isFemaleToMale}\">\n    {{counts.ratio}} {{counts.isFemaleToMale ? 'girls' : 'guys'}}\n  </span> to\n  <span ng-class=\"{'text-danger': !counts.isFemaleToMale, 'text-info': counts.isFemaleToMale}\">\n    1 {{counts.isFemaleToMale ? 'guy' : 'girl'}}\n  </span>\n</span>"
     };
   }
 ]);
@@ -189,6 +197,12 @@ ev.directive('aboutEvenn', function() {
     link: function(scope) {
       return scope.isDirective = true;
     }
+  };
+});
+
+ev.directive('aboutGenderRatios', function() {
+  return {
+    templateUrl: 'about-gender-ratios.html'
   };
 });
 
@@ -249,7 +263,7 @@ ev.config([
     }).when('/genders', {
       templateUrl: 'gender-ratio-index.html',
       controller: 'GenderRatioIndexCtrl'
-    }).when('/genders/:id', {
+    }).when('/events/:id/genders', {
       templateUrl: 'gender-ratio-show.html',
       controller: 'GenderRatioShowCtrl'
     }).when('/table', {

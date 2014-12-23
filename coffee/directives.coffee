@@ -20,8 +20,12 @@ ev.directive('genderRatio', [->
     counts: "="
   template: """
     <span>
-      <span class="text-danger">{{counts.ratio}} {{counts.isFemaleToMale ? 'girls' : 'guys'}}</span> to
-      <span class="text-info">1 {{counts.isFemaleToMale ? 'guy' : 'girl'}}</span>
+      <span ng-class="{'text-danger': counts.isFemaleToMale, 'text-info': !counts.isFemaleToMale}">
+        {{counts.ratio}} {{counts.isFemaleToMale ? 'girls' : 'guys'}}
+      </span> to
+      <span ng-class="{'text-danger': !counts.isFemaleToMale, 'text-info': counts.isFemaleToMale}">
+        1 {{counts.isFemaleToMale ? 'guy' : 'girl'}}
+      </span>
     </span>
   """
 ])
@@ -49,6 +53,10 @@ ev.directive('stRatio', ->
 ev.directive('aboutEvenn', ->
   templateUrl: 'about.html'
   link: (scope) -> scope.isDirective = true
+)
+
+ev.directive('aboutGenderRatios', ->
+  templateUrl: 'about-gender-ratios.html'
 )
 
 ev.directive('attendeeTable', [

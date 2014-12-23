@@ -18,7 +18,7 @@ ev.config([
     ).when('/genders',
       templateUrl: 'gender-ratio-index.html'
       controller: 'GenderRatioIndexCtrl'
-    ).when('/genders/:id',
+    ).when('/events/:id/genders',
       templateUrl: 'gender-ratio-show.html'
       controller: 'GenderRatioShowCtrl'
     ).when('/table',
