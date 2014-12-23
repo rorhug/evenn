@@ -138,7 +138,7 @@ ev.controller('TableCtrl', [
 ev.controller('VennCtrl', ['$scope', function($scope) {}]);
 
 ev.controller('GenderRatioIndexCtrl', [
-  '$scope', 'UserStore', function($scope, UserStore, $intercom) {
+  '$scope', 'UserStore', '$intercom', function($scope, UserStore, $intercom) {
     return $intercom.trackEvent('view_gender_ratio_index', {
       event_count: $scope.user.eventIds.length
     });
@@ -146,7 +146,7 @@ ev.controller('GenderRatioIndexCtrl', [
 ]);
 
 ev.controller('GenderRatioShowCtrl', [
-  '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
+  '$scope', '$routeParams', 'UserStore', '$intercom', function($scope, $routeParams, UserStore, $intercom) {
     $scope.event = $scope.user.events[$routeParams.id];
     return $intercom.trackEvent('view_gender_ratio_show', {
       female_invited_count: $scope.event.genderCounts.invited.f,

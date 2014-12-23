@@ -144,6 +144,7 @@ ev.controller('VennCtrl', [
 ev.controller('GenderRatioIndexCtrl', [
   '$scope'
   'UserStore'
+  '$intercom'
   ($scope, UserStore, $intercom) ->
     $intercom.trackEvent('view_gender_ratio_index',
       event_count: $scope.user.eventIds.length
@@ -154,7 +155,8 @@ ev.controller('GenderRatioShowCtrl', [
   '$scope'
   '$routeParams'
   'UserStore'
-  ($scope, $routeParams, UserStore) ->
+  '$intercom'
+  ($scope, $routeParams, UserStore, $intercom) ->
     $scope.event = $scope.user.events[$routeParams.id]
     $intercom.trackEvent('view_gender_ratio_show',
       female_invited_count: $scope.event.genderCounts.invited.f
