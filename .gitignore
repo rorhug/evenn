@@ -5,3 +5,5 @@ pids
 *.seed
 node_modules
 .lock-wscript
+.public/*
+coffee/config.coffee.example
