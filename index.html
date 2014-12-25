@@ -70,7 +70,9 @@
           </ul>
           <ul class="nav navbar-nav navbar-right" ng-show="user.fb">
             <li>
-              <a bs-collapse-toggle ng-click="changeEvents()" ng-show="user.eventsReady"><i class="fa fa-file-o"></i> Change events</a>
+              <a bs-collapse-toggle ng-click="changeEvents()" ng-show="user.eventsReady">
+                <i class="fa fa-file-o"></i> Change selection
+              </a>
             </li>
             <li><a bs-collapse-toggle ng-click="logout()"><i class="fa fa-sign-out"></i> Logout</a></li>
           </ul>
@@ -83,7 +85,7 @@
     <div class="footer well well-sm text-muted">
       <a href="#/about">What is this?</a> | 
       Made by <a href="http://rory.ie/me" target="_blank">Rory Hughes</a> |
-      <a href="https://github.com/RoryDH/evenn" target="_blank"><i class="fa fa-github"></i> Source</a>
+      <a href="https://github.com/RoryDH/evenn" target="_blank"><i class="fa fa-github"></i> Source Code</a>
     </div>
   </div>
 
@@ -140,12 +142,20 @@
 </script>
 
 <script type="text/ng-template" id="events-home.html">
-  <h4>Selected Events:</h4>
+  <h3>
+    Selected Events:
+    <a ng-click="changeEvents()" class="btn btn-default btn-sm pull-right">
+      <i class="fa fa-file-o"></i> Change selection
+    </a>
+  </h3>
   <div class="row">
     <div class="col-sm-6 col-md-4" ng-repeat="(id, event) in user.events">
       <event-card event="event"></event-card>
     </div>
   </div>
+  <a ng-click="changeEvents()" class="btn btn-default btn-block">
+    <i class="fa fa-file-o"></i> Change selection
+  </a>
 </script>
 
 <script type="text/ng-template" id="event-card.html">
@@ -224,7 +234,7 @@
     <div class="col-md-8" ng-if="event">
       <div class="page-header">
         <h3>
-          <a class="btn btn-default btn-lg" href="#/genders"><i class="fa fa-chevron-left"></i></a>
+          <a class="btn btn-default" href="#/genders"><i class="fa fa-chevron-left"></i> All ratios</a>
           <strong>'{{event.name}}'</strong> Ratio
         </h3>
       </div>
@@ -244,7 +254,7 @@
     </div>
 
     <div class="col-md-4">
-      <a class="btn btn-default btn-block" href="#/genders"><i class="fa fa-chevron-left"></i> Other events</a><br>
+      <a class="btn btn-default btn-block" href="#/genders"><i class="fa fa-chevron-left"></i> All ratios</a><br>
       <about-gender-ratios></about-gender-ratios>
     </div>
   </div>
