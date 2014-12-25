@@ -117,6 +117,9 @@ ev.run([
         cb()
       )
     
+    $rootScope.$on('$locationChangeSuccess', (e, next, current) ->
+      $intercom.update()
+    )
     $rootScope.$on('$locationChangeStart', (e, next, current) ->
       url = $location.url()
       if _.contains(noAuthRoutes, url)
@@ -138,9 +141,6 @@ ev.run([
             $location.url('/login')
             $route.reload()
             delayedLoad()
-    )
-    $rootScope.$on('$locationChangeSuccess', (e, next, current) ->
-      $intercom.update()
     )
 ])
 

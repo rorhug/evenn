@@ -34,6 +34,7 @@
   </script>
 </head>
 <body ng-controller="MainCtrl">
+
   <div id="start-screen" ng-class="{'fade-out': evennLoaded}">
     <h1>Evenn</h1>
     <p>Loading...</p>
@@ -79,8 +80,7 @@
         </div>
       </div>
     </nav>
-
-    <ng-view autoscroll="true"></ng-view>
+    <div ng-view autoscroll="true" class="page"></div>
 
     <div class="footer well well-sm text-muted">
       <a href="#/about">What is this?</a> | 
@@ -144,7 +144,7 @@
 <script type="text/ng-template" id="events-home.html">
   <h3>
     Events:
-    <a ng-click="changeEvents()" class="btn btn-default btn-sm pull-right">
+    <a ng-click="changeEvents()" class="btn btn-default btn-sm pull-right visible-xs-inline">
       <i class="fa fa-file-o"></i> Change selection
     </a>
   </h3>

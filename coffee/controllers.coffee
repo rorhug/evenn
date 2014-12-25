@@ -137,6 +137,7 @@ ev.controller('TableCtrl', [
   ($scope, $routeParams, UserStore) ->
     $scope.highlightId = $routeParams.highlight
     $scope.attendees = _.values(UserStore.users)
+
 ])
 
 ev.controller('VennCtrl', [
