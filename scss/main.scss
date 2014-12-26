@@ -32,6 +32,10 @@ input[type=search] {
   color: #777;
 }
 
+.navbar-brand {
+  padding: 4px 10px;
+}
+
 .select-events-panel {
   .panel-heading {
     padding: 6px 7px;
@@ -59,8 +63,8 @@ input[type=search] {
   &.fade-out-add {
     display: block;
   }
-  h1 {
-    margin-top: 80px;
+  img {
+    margin-top: 60px;
   }
 }
 
