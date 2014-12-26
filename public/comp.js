@@ -4,6 +4,10 @@ Chart.defaults.global.responsive = true;
 
 ev = angular.module('evenn', ['ngRoute', 'ngAnimate', 'mgcrea.ngStrap', 'facebook', 'smart-table', 'angulartics', 'angulartics.google.analytics', 'ngIntercom', 'chart.js']);
 
+ev.constant('paginate', function(array, pageSize, pageNumber) {
+  return array.slice(pageSize * pageNumber, pageSize * (pageNumber + 1));
+});
+
 window.evennConfig = {
   ga_id: 'UA-38398315-11',
   fb_app_id: '316035781927497',
@@ -127,7 +131,7 @@ ev.controller('SelectEventsCtrl', [
             });
             $location.url('/');
             return $scope.user.eventsReady = true;
-          }, 2000);
+          }, 500);
         });
       });
     };
@@ -139,7 +143,9 @@ ev.controller('EventsHomeCtrl', ['$scope', function($scope) {}]);
 ev.controller('TableCtrl', [
   '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
     $scope.highlightId = $routeParams.highlight;
-    return $scope.attendees = _.values(UserStore.users);
+    return $scope.attendees = _.sortBy(_.values(UserStore.users), function(user) {
+      return -user.getScore();
+    });
   }
 ]);
 
@@ -282,7 +288,7 @@ ev.directive('aboutGenderRatios', function() {
 });
 
 ev.directive('attendeeTable', [
-  '$rootScope', function($rootScope) {
+  '$rootScope', 'paginate', function($rootScope, paginate) {
     return {
       scope: {
         attendees: '=',
@@ -291,24 +297,35 @@ ev.directive('attendeeTable', [
       },
       templateUrl: 'attendee-table.html',
       link: function(scope, element, attr) {
-        scope.eventIds = Object.keys(scope.events);
-        scope.tableHeight = window.innerHeight ? "" + (window.innerHeight - 80) + "px" : '350px';
-        scope.columnWidth = (80 / scope.eventIds.length) - 0.1;
-        return scope.getScore = function(attendee) {
-          if (attendee.score) {
-            return attendee.score;
-          }
-          return attendee.score = _.reduce(scope.eventIds, function(result, eventId, index) {
-            var i, rsvpScore;
-            rsvpScore = $rootScope.rsvpMeta.points[attendee.events[eventId]];
-            if (rsvpScore) {
-              i = Math.pow(index + 2, 2);
-              return result + 10000 + (i * 100) + (rsvpScore * i);
-            } else {
-              return result;
-            }
-          }, 0);
+        var addNextPage, container, currentPage, getNextPage, lastRemaining, lengthThreshold, perPage, tableHeight;
+        scope.eventIds = $rootScope.user.eventIds;
+        tableHeight = window.innerHeight ? window.innerHeight - 80 : 350;
+        scope.tableHeightStr = "" + tableHeight + "px";
+        scope.columnWidth = (75 / scope.eventIds.length) - 0.1;
+        perPage = Math.floor((tableHeight + 200) / 31);
+        currentPage = -1;
+        getNextPage = function() {
+          return paginate(scope.attendees, perPage, currentPage += 1);
         };
+        scope.rowCollection = [];
+        addNextPage = function() {
+          if (scope.attendees.length > scope.rowCollection.length) {
+            scope.rowCollection.push.apply(scope.rowCollection, getNextPage());
+            return scope.$apply();
+          }
+        };
+        container = angular.element(element.find('tbody')[0]);
+        lengthThreshold = 50;
+        lastRemaining = 9999;
+        container.bind("scroll", function() {
+          var remaining;
+          remaining = container[0].scrollHeight - (container[0].clientHeight + container[0].scrollTop);
+          if (remaining < lengthThreshold && (remaining - lastRemaining) < 0) {
+            addNextPage();
+          }
+          return lastRemaining = remaining;
+        });
+        return scope.rowCollection = getNextPage();
       }
     };
   }
@@ -442,7 +459,10 @@ ev.run([
         return cb();
       });
     };
-    $rootScope.$on('$locationChangeStart', function(e, next, current) {
+    $rootScope.$on('$locationChangeSuccess', function(e, next, current) {
+      return $intercom.update();
+    });
+    return $rootScope.$on('$locationChangeStart', function(e, next, current) {
       var url;
       url = $location.url();
       if (_.contains(noAuthRoutes, url)) {
@@ -468,9 +488,6 @@ ev.run([
           }
         });
       }
-    });
-    return $rootScope.$on('$locationChangeSuccess', function(e, next, current) {
-      return $intercom.update();
     });
   }
 ]);
@@ -507,7 +524,7 @@ ev.service('genders', [
 ]);
 
 ev.service('UserStore', [
-  'genders', function(genders) {
+  'genders', '$rootScope', function(genders, $rootScope) {
     var User, store;
     User = (function() {
       function User(fbObj) {
@@ -521,6 +538,25 @@ ev.service('UserStore', [
 
       User.prototype.addRsvp = function(id, rsvp) {
         return this.events[id] = rsvp;
+      };
+
+      User.prototype.getScore = function() {
+        var self;
+        if (this._score !== void 0) {
+          return this._score;
+        }
+        self = this;
+        this._score = _.reduce($rootScope.user.eventIds, function(result, eventId, index) {
+          var i, rsvpScore;
+          rsvpScore = $rootScope.rsvpMeta.points[self.events[eventId]];
+          if (rsvpScore) {
+            i = Math.pow(index + 2, 2);
+            return result + 10000 + (i * 100) + (rsvpScore * i);
+          } else {
+            return result;
+          }
+        }, 0);
+        return this._score;
       };
 
       return User;
@@ -538,6 +574,11 @@ ev.service('UserStore', [
         }
         userInstance.addRsvp(eventId, userObj.rsvp_status);
         return userInstance;
+      },
+      getAllScores: function() {
+        return _.forEach(this.users, function(user) {
+          return user.calcScore();
+        });
       },
       getAllGenders: function(cb) {
         var namesToIds, self;
