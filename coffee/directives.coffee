@@ -160,7 +160,12 @@ ev.directive('attendeeTable', [
           addNextPage()
         lastRemaining = remaining
       scope.rowCollection = getNextPage()
-      
+
+      scope.$watch("userSearch.name", (newValue) ->
+        if newValue
+          while scope.attendees.length > scope.rowCollection.length
+            scope.rowCollection.push.apply(scope.rowCollection, getNextPage())
+      )
 ])
 
 ev.directive('eventCard', ->
