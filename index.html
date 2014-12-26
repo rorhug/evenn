@@ -203,6 +203,33 @@
   <attendee-table attendees="attendees" events="user.events" highlight-id="highlightId"></attendee-table>
 </script>
 
+<script type="text/ng-template" id="attendee-table.html">
+  <table st-table="rowCollection" class="table table-hover table-condensed" ng-style="{height: tableHeightStr}">
+    <thead>
+      <tr>
+        <th st-ratio="100">
+          <input st-search="'name'" placeholder="Search..." class="input-sm form-control" type="search"/>
+        </th>
+      </tr>
+      <tr>
+        <th st-ratio="25">Name</th>
+        <th st-ratio="{{columnWidth}}" ng-repeat="id in eventIds" ng-bind="events[id].name" ng-class="{'highlighted-column': id == highlightId}"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="person in rowCollection">
+        <td st-ratio="25">
+          <a ng-href="{{person.link}}" target="_blank">
+            <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
+            <span ng-bind="person.name"></span>
+          </a>
+        </td>
+        <td st-ratio="{{columnWidth}}" ng-repeat="id in eventIds" ng-class="$root.rsvpMeta.colors[person.events[id]]" ng-bind="$root.rsvpMeta.words[person.events[id]]"></td>
+      </tr>
+    </tbody>
+  </table>
+</script>
+
 <script type="text/ng-template" id="gender-ratio-index.html">
   <div class="row gender-ratios">
     <div class="col-md-7">
@@ -263,33 +290,6 @@
 <script type="text/ng-template" id="venn.html">
   <h4>Venn Diagram</h4>
   Coming soon...
-</script>
-
-<script type="text/ng-template" id="attendee-table.html">
-  <table st-table="attendees" class="table table-hover table-condensed" ng-style="{height: tableHeight}">
-    <thead>
-      <tr>
-        <th st-ratio="100">
-          <input st-search="'name'" placeholder="Search..." class="input-sm form-control" type="search"/>
-        </th>
-      </tr>
-      <tr>
-        <th st-ratio="20">Name</th>
-        <th st-ratio="{{columnWidth}}" ng-repeat="id in eventIds" ng-bind="events[id].name" ng-class="{'highlighted-column': id == highlightId}"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="person in attendees | orderBy : getScore : true">
-        <td st-ratio="20">
-          <a ng-href="{{person.link}}" target="_blank">
-            <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
-            <span ng-bind="person.name"></span>
-          </a>
-        </td>
-        <td st-ratio="{{columnWidth}}" ng-repeat="id in eventIds" ng-class="$root.rsvpMeta.colors[person.events[id]]" ng-bind="$root.rsvpMeta.words[person.events[id]]"></td>
-      </tr>
-    </tbody>
-  </table>
 </script>
 
 <script type="text/ng-template" id="about.html">

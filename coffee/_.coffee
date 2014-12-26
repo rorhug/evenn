@@ -11,3 +11,7 @@ ev = angular.module('evenn', [
   'ngIntercom'
   'chart.js'
 ])
+
+ev.constant('paginate', (array, pageSize, pageNumber) ->
+  array.slice(pageSize * pageNumber, pageSize * (pageNumber + 1))
+)

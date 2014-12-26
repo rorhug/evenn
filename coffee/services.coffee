@@ -16,7 +16,8 @@ ev.service('genders', [
 
 ev.service('UserStore', [
   'genders'
-  (genders) ->
+  '$rootScope'
+  (genders, $rootScope) ->
     class User
       constructor: (fbObj) ->
         @id = fbObj.id
@@ -29,6 +30,19 @@ ev.service('UserStore', [
       addRsvp: (id, rsvp) ->
         @events[id] = rsvp
 
+      getScore: ->
+        return @_score unless @_score is undefined
+        self = @
+        @_score = _.reduce($rootScope.user.eventIds, (result, eventId, index) ->
+          rsvpScore = $rootScope.rsvpMeta.points[self.events[eventId]]
+          if rsvpScore
+            i = Math.pow((index+2), 2)
+            result + 10000 + (i*100) + (rsvpScore*i)
+          else
+            result
+        , 0)
+        @_score
+
     store =
       users: {}
       loadedGenders: false
@@ -39,6 +53,8 @@ ev.service('UserStore', [
           @users[userObj.id] = userInstance
         userInstance.addRsvp(eventId, userObj.rsvp_status)
         userInstance
+      getAllScores: ->
+        _.forEach(@users, (user) -> user.calcScore())
       getAllGenders: (cb) ->
         self = @
         return cb(self.users) if @loadedGenders
@@ -127,5 +143,4 @@ ev.service('FbEvent', [
           memo[rsvp] = self._genderCountsFor(self[rsvp])
           memo
         , {})
-
 ])

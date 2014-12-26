@@ -124,29 +124,43 @@ ev.directive('aboutGenderRatios', ->
 
 ev.directive('attendeeTable', [
   '$rootScope'
-  ($rootScope) ->
+  'paginate'
+  ($rootScope, paginate) ->
     scope:
       attendees: '='
       highlightId: '='
       events: '='
     templateUrl: 'attendee-table.html'
     link: (scope, element, attr) ->
-      scope.eventIds = Object.keys(scope.events)
-      scope.tableHeight = if window.innerHeight then "#{window.innerHeight - 80}px" else '350px'
-      scope.columnWidth = (80 / scope.eventIds.length) - 0.1
-      # scope.rsvpMeta = rsvpMeta
+      scope.eventIds = $rootScope.user.eventIds
+      tableHeight = if window.innerHeight then window.innerHeight - 80 else 350
+      scope.tableHeightStr = "#{tableHeight}px"
+      scope.columnWidth = (75 / scope.eventIds.length) - 0.1
+      perPage = Math.floor((tableHeight + 200) / 31)
 
-      scope.getScore = (attendee) ->
-        return attendee.score if attendee.score
-        attendee.score = _.reduce(scope.eventIds,
-        (result, eventId, index) ->
-          rsvpScore = $rootScope.rsvpMeta.points[attendee.events[eventId]]
-          if rsvpScore
-            i = Math.pow((index+2), 2)
-            result + 10000 + (i*100) + (rsvpScore*i)
-          else
-            result
-        , 0)
+      currentPage = -1
+      getNextPage = ->
+        paginate(
+          scope.attendees,
+          perPage,
+          currentPage += 1
+        )
+      scope.rowCollection = []
+      addNextPage = ->
+        if scope.attendees.length > scope.rowCollection.length
+          scope.rowCollection.push.apply(scope.rowCollection, getNextPage())
+          scope.$apply()
+
+      container = angular.element(element.find('tbody')[0])
+      lengthThreshold = 50
+      lastRemaining = 9999
+      container.bind "scroll", ->
+        remaining = container[0].scrollHeight - (container[0].clientHeight + container[0].scrollTop)
+        if remaining < lengthThreshold and (remaining - lastRemaining) < 0
+          addNextPage()
+        lastRemaining = remaining
+      scope.rowCollection = getNextPage()
+      
 ])
 
 ev.directive('eventCard', ->
