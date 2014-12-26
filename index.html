@@ -208,7 +208,7 @@
     <thead>
       <tr>
         <th st-ratio="100">
-          <input st-search="'name'" placeholder="Search..." class="input-sm form-control" type="search"/>
+          <input ng-model="userSearch.name" ng-model-options="{debounce: {'default': 300}}" placeholder="Search..." class="input-sm form-control" type="search"/>
         </th>
       </tr>
       <tr>
@@ -217,7 +217,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr ng-repeat="person in rowCollection">
+      <tr ng-repeat="person in rowCollection | filter:userSearch">
         <td st-ratio="25">
           <a ng-href="{{person.link}}" target="_blank">
             <img height="31" ng-if="person.picture_url" ng-src="{{person.picture_url}}">
