@@ -28,6 +28,9 @@ input[type=search] {
 .navbar-brand {
   padding: 4px 10px; }
 
+.login-button-container {
+  margin-top: 30px; }
+
 .select-events-panel .panel-heading {
   padding: 6px 7px; }
   .select-events-panel .panel-heading strong {
@@ -51,6 +54,8 @@ input[type=search] {
     display: block; }
   #start-screen img {
     margin-top: 60px; }
+  #start-screen .loading {
+    margin-top: 40px; }
 
 .thumbnail.event-card .well {
   margin-bottom: 0; }
