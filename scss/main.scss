@@ -36,6 +36,10 @@ input[type=search] {
   padding: 4px 10px;
 }
 
+.login-button-container {
+  margin-top: 30px;
+}
+
 .select-events-panel {
   .panel-heading {
     padding: 6px 7px;
@@ -65,6 +69,9 @@ input[type=search] {
   }
   img {
     margin-top: 60px;
+  }
+  .loading {
+    margin-top: 40px;
   }
 }
 
