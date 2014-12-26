@@ -120,7 +120,7 @@ ev.controller('SelectEventsCtrl', [
             )
             $location.url('/')
             $scope.user.eventsReady = true
-          , 2000)
+          , 500)
         )
       )
 ])
@@ -136,7 +136,7 @@ ev.controller('TableCtrl', [
   'UserStore'
   ($scope, $routeParams, UserStore) ->
     $scope.highlightId = $routeParams.highlight
-    $scope.attendees = _.values(UserStore.users)
+    $scope.attendees = _.sortBy(_.values(UserStore.users), (user) -> -user.getScore())
 ])
 
 ev.controller('VennCtrl', [
