@@ -325,7 +325,17 @@ ev.directive('attendeeTable', [
           }
           return lastRemaining = remaining;
         });
-        return scope.rowCollection = getNextPage();
+        scope.rowCollection = getNextPage();
+        return scope.$watch("userSearch.name", function(newValue) {
+          var _results;
+          if (newValue) {
+            _results = [];
+            while (scope.attendees.length > scope.rowCollection.length) {
+              _results.push(scope.rowCollection.push.apply(scope.rowCollection, getNextPage()));
+            }
+            return _results;
+          }
+        });
       }
     };
   }
