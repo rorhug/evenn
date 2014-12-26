@@ -25,6 +25,9 @@ input[type=search] {
 .neutral {
   color: #777; }
 
+.navbar-brand {
+  padding: 4px 10px; }
+
 .select-events-panel .panel-heading {
   padding: 6px 7px; }
   .select-events-panel .panel-heading strong {
@@ -46,8 +49,8 @@ input[type=search] {
     display: none; }
   #start-screen.fade-out-add {
     display: block; }
-  #start-screen h1 {
-    margin-top: 80px; }
+  #start-screen img {
+    margin-top: 60px; }
 
 .thumbnail.event-card .well {
   margin-bottom: 0; }
