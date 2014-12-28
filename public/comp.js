@@ -135,7 +135,7 @@ ev.controller('SelectEventsCtrl', [
 ]);
 
 ev.controller('EventsHomeCtrl', [
-  '$scope', function($scope) {
+  '$scope', '$intercom', 'UserStore', function($scope, $intercom, UserStore) {
     return $intercom.trackEvent('events_home', {
       total_facebook_users: _.size(UserStore.users),
       event_count: $scope.user.eventIds.length,
@@ -147,7 +147,7 @@ ev.controller('EventsHomeCtrl', [
 ]);
 
 ev.controller('TableCtrl', [
-  '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
+  '$scope', '$routeParams', 'UserStore', '$intercom', function($scope, $routeParams, UserStore, $intercom) {
     $scope.highlightId = $routeParams.highlight;
     $scope.attendees = _.sortBy(_.values(UserStore.users), function(user) {
       return -user.getScore();
