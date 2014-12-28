@@ -125,10 +125,6 @@ ev.controller('SelectEventsCtrl', [
           });
           addLoadingLine("-*- ANALYSIS COMPLETE -*-\nPlease wait...");
           return $timeout(function() {
-            $intercom.trackEvent('analyse', {
-              event_count: $scope.user.eventIds.length,
-              total_facebook_users: _.size(UserStore.users)
-            });
             $location.url('/');
             return $scope.user.eventsReady = true;
           }, 500);
@@ -138,13 +134,26 @@ ev.controller('SelectEventsCtrl', [
   }
 ]);
 
-ev.controller('EventsHomeCtrl', ['$scope', function($scope) {}]);
+ev.controller('EventsHomeCtrl', [
+  '$scope', function($scope) {
+    return $intercom.trackEvent('events_home', {
+      total_facebook_users: _.size(UserStore.users),
+      event_count: $scope.user.eventIds.length,
+      event_ids: _.pluck($scope.user.events, 'id').join(","),
+      event_names: _.pluck($scope.user.events, 'name').join(","),
+      event_invited_counts: _.pluck($scope.user.events, 'invitedCount').join(",")
+    });
+  }
+]);
 
 ev.controller('TableCtrl', [
   '$scope', '$routeParams', 'UserStore', function($scope, $routeParams, UserStore) {
     $scope.highlightId = $routeParams.highlight;
-    return $scope.attendees = _.sortBy(_.values(UserStore.users), function(user) {
+    $scope.attendees = _.sortBy(_.values(UserStore.users), function(user) {
       return -user.getScore();
+    });
+    return $intercom.trackEvent('view_table', {
+      highlight_id: $scope.highlightId
     });
   }
 ]);
@@ -153,9 +162,7 @@ ev.controller('VennCtrl', ['$scope', function($scope) {}]);
 
 ev.controller('GenderRatioIndexCtrl', [
   '$scope', 'UserStore', '$intercom', function($scope, UserStore, $intercom) {
-    return $intercom.trackEvent('view_gender_ratio_index', {
-      event_count: $scope.user.eventIds.length
-    });
+    return $intercom.trackEvent('view_gender_ratio_index');
   }
 ]);
 
@@ -163,9 +170,10 @@ ev.controller('GenderRatioShowCtrl', [
   '$scope', '$routeParams', 'UserStore', '$intercom', function($scope, $routeParams, UserStore, $intercom) {
     $scope.event = $scope.user.events[$routeParams.id];
     return $intercom.trackEvent('view_gender_ratio_show', {
-      female_invited_count: $scope.event.genderCounts.invited.f,
-      male_invited_count: $scope.event.genderCounts.invited.m,
-      neutral_invited_count: $scope.event.genderCounts.invited.n
+      event_id: $scope.event.id,
+      female_attending_count: $scope.event.genderCounts.attending.f,
+      male_attending_count: $scope.event.genderCounts.attending.m,
+      neutral_attending_count: $scope.event.genderCounts.attending.n
     });
   }
 ]);
