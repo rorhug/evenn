@@ -114,10 +114,6 @@ ev.controller('SelectEventsCtrl', [
             #   category: 'interesting'
             #   label: label
             # )
-            $intercom.trackEvent('analyse',
-              event_count: $scope.user.eventIds.length
-              total_facebook_users: _.size(UserStore.users)
-            )
             $location.url('/')
             $scope.user.eventsReady = true
           , 500)
@@ -128,6 +124,13 @@ ev.controller('SelectEventsCtrl', [
 ev.controller('EventsHomeCtrl', [
   '$scope'
   ($scope) ->
+    $intercom.trackEvent('events_home',
+      total_facebook_users: _.size(UserStore.users)
+      event_count: $scope.user.eventIds.length
+      event_ids: _.pluck($scope.user.events, 'id').join(",")
+      event_names: _.pluck($scope.user.events, 'name').join(",")
+      event_invited_counts: _.pluck($scope.user.events, 'invitedCount').join(",")
+    )
 ])
 
 ev.controller('TableCtrl', [
@@ -137,6 +140,9 @@ ev.controller('TableCtrl', [
   ($scope, $routeParams, UserStore) ->
     $scope.highlightId = $routeParams.highlight
     $scope.attendees = _.sortBy(_.values(UserStore.users), (user) -> -user.getScore())
+    $intercom.trackEvent('view_table',
+      highlight_id: $scope.highlightId
+    )
 ])
 
 ev.controller('VennCtrl', [
@@ -149,9 +155,7 @@ ev.controller('GenderRatioIndexCtrl', [
   'UserStore'
   '$intercom'
   ($scope, UserStore, $intercom) ->
-    $intercom.trackEvent('view_gender_ratio_index',
-      event_count: $scope.user.eventIds.length
-    )
+    $intercom.trackEvent('view_gender_ratio_index')
 ])
 
 ev.controller('GenderRatioShowCtrl', [
@@ -162,8 +166,9 @@ ev.controller('GenderRatioShowCtrl', [
   ($scope, $routeParams, UserStore, $intercom) ->
     $scope.event = $scope.user.events[$routeParams.id]
     $intercom.trackEvent('view_gender_ratio_show',
-      female_invited_count: $scope.event.genderCounts.invited.f
-      male_invited_count: $scope.event.genderCounts.invited.m
-      neutral_invited_count: $scope.event.genderCounts.invited.n
+      event_id: $scope.event.id
+      female_attending_count: $scope.event.genderCounts.attending.f
+      male_attending_count: $scope.event.genderCounts.attending.m
+      neutral_attending_count: $scope.event.genderCounts.attending.n
     )
 ])
