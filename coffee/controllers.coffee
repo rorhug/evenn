@@ -71,10 +71,6 @@ ev.controller('SelectEventsCtrl', [
       )
     , (err, events) ->
       $scope.availableEvents = events
-      # $analytics.eventTrack('events_select_length',
-      #   category: 'interesting'
-      #   label: "#{events.length}"
-      # )
       $intercom.trackEvent('events_select_length',
         event_count: events.length
       )
@@ -109,11 +105,6 @@ ev.controller('SelectEventsCtrl', [
           _.forEach($scope.user.events, (e) -> e.generateAllEventStats())
           addLoadingLine("-*- ANALYSIS COMPLETE -*-\nPlease wait...")
           $timeout( ->
-            # label = "#{$scope.user.eventIds.length}e#{_.size(UserStore.users)}u"
-            # $analytics.eventTrack('analyse',
-            #   category: 'interesting'
-            #   label: label
-            # )
             $location.url('/')
             $scope.user.eventsReady = true
           , 500)
@@ -123,7 +114,9 @@ ev.controller('SelectEventsCtrl', [
 
 ev.controller('EventsHomeCtrl', [
   '$scope'
-  ($scope) ->
+  '$intercom'
+  'UserStore'
+  ($scope, $intercom, UserStore) ->
     $intercom.trackEvent('events_home',
       total_facebook_users: _.size(UserStore.users)
       event_count: $scope.user.eventIds.length
@@ -137,7 +130,8 @@ ev.controller('TableCtrl', [
   '$scope'
   '$routeParams'
   'UserStore'
-  ($scope, $routeParams, UserStore) ->
+  '$intercom'
+  ($scope, $routeParams, UserStore, $intercom) ->
     $scope.highlightId = $routeParams.highlight
     $scope.attendees = _.sortBy(_.values(UserStore.users), (user) -> -user.getScore())
     $intercom.trackEvent('view_table',
